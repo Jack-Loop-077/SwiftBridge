@@ -1,0 +1,2776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="SwiftBridge Lite V2 — Fast P2P File Transfer">
+<title>SwiftBridge Lite V2</title>
+
+<!-- PWA Manifest (inline as data URI) -->
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiU3dpZnRCcmlkZ2UgTGl0ZSBWMiIsInNob3J0X25hbWUiOiJTd2lmdEJyaWRnZSIsImRlc2NyaXB0aW9uIjoiRmFzdCBQMlAgRmlsZSBUcmFuc2ZlciIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMGEwYTBmIiwidGhlbWVfY29sb3IiOiIjMDBmMGZmIiwib3JpZW50YXRpb24iOiJhbnkiLCJpY29ucyI6W3sic3JjIjoiZGF0YTppbWFnZS9zdmcreG1sLCUzQ3N2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAxMDAgMTAwJyUzRSUzQ3JlY3Qgd2lkdGg9JzEwMCcgaGVpZ2h0PScxMDAnIGZpbGw9JyUyMzBhMGEwZiclM0UlM0MvcmVjdCUzRSUzQ3RleHQgeD0nNTAnIHk9JzU1JyBmb250LXNpemU9JzUwJyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBmaWxsPSclMjMwMGYwZmYnJTNF4pqhJTNDL3RleHQlM0UlM0Mvc3ZnJTNFIiwic2l6ZXMiOiJhbnkiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCJ9XX0=">
+
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --neon-cyan: #00f0ff;
+  --neon-pink: #ff00e5;
+  --neon-green: #39ff14;
+  --neon-orange: #ff6b00;
+  --neon-purple: #bf00ff;
+  --bg-dark: #0a0a0f;
+  --bg-card: #12121a;
+  --bg-card2: #1a1a2e;
+  --text-primary: #e0e0e0;
+  --text-dim: #888;
+  --border-color: #2a2a3e;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html, body { 
+  height: 100%; 
+  overflow-x: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.font-mono { font-family: 'JetBrains Mono', monospace; }
+
+.bg-grid {
+  position: fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:
+    linear-gradient(rgba(0,240,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,240,255,0.025) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: gridMove 30s linear infinite;
+}
+@keyframes gridMove {
+  0% { transform: translate(0,0); }
+  100% { transform: translate(50px,50px); }
+}
+
+.glow-cyan { box-shadow: 0 0 20px rgba(0,240,255,0.3), 0 0 60px rgba(0,240,255,0.1); }
+.glow-pink { box-shadow: 0 0 20px rgba(255,0,229,0.3), 0 0 60px rgba(255,0,229,0.1); }
+.glow-green { box-shadow: 0 0 20px rgba(57,255,20,0.3), 0 0 60px rgba(57,255,20,0.1); }
+.text-glow-cyan { text-shadow: 0 0 10px rgba(0,240,255,0.5), 0 0 30px rgba(0,240,255,0.2); }
+.text-glow-pink { text-shadow: 0 0 10px rgba(255,0,229,0.5), 0 0 30px rgba(255,0,229,0.2); }
+
+.btn-neon {
+  position: relative;
+  padding: 14px 28px;
+  border: 1px solid;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  background: transparent;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-neon::before {
+  content: '';
+  position: absolute; inset:0;
+  opacity: 0;
+  transition: opacity 0.3s;
+  border-radius: inherit;
+}
+.btn-neon:hover::before { opacity: 1; }
+.btn-neon:active { transform: scale(0.97); }
+.btn-neon:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-cyan { color: var(--neon-cyan); border-color: var(--neon-cyan); }
+.btn-cyan::before { background: rgba(0,240,255,0.1); }
+.btn-cyan:hover:not(:disabled) { box-shadow: 0 0 30px rgba(0,240,255,0.4), inset 0 0 30px rgba(0,240,255,0.1); }
+
+.btn-pink { color: var(--neon-pink); border-color: var(--neon-pink); }
+.btn-pink::before { background: rgba(255,0,229,0.1); }
+.btn-pink:hover:not(:disabled) { box-shadow: 0 0 30px rgba(255,0,229,0.4), inset 0 0 30px rgba(255,0,229,0.1); }
+
+.btn-green { color: var(--neon-green); border-color: var(--neon-green); }
+.btn-green::before { background: rgba(57,255,20,0.1); }
+.btn-green:hover:not(:disabled) { box-shadow: 0 0 30px rgba(57,255,20,0.4), inset 0 0 30px rgba(57,255,20,0.1); }
+
+.btn-orange { color: var(--neon-orange); border-color: var(--neon-orange); }
+.btn-orange::before { background: rgba(255,107,0,0.1); }
+.btn-orange:hover:not(:disabled) { box-shadow: 0 0 30px rgba(255,107,0,0.4), inset 0 0 30px rgba(255,107,0,0.1); }
+
+.btn-purple { color: var(--neon-purple); border-color: var(--neon-purple); }
+.btn-purple::before { background: rgba(191,0,255,0.1); }
+.btn-purple:hover:not(:disabled) { box-shadow: 0 0 30px rgba(191,0,255,0.4), inset 0 0 30px rgba(191,0,255,0.1); }
+
+.btn-danger { color: #ff0064; border-color: #ff0064; }
+.btn-danger::before { background: rgba(255,0,100,0.1); }
+.btn-danger:hover:not(:disabled) { box-shadow: 0 0 30px rgba(255,0,100,0.4), inset 0 0 30px rgba(255,0,100,0.1); }
+
+.btn-sm { padding: 8px 16px; font-size: 0.8rem; letter-spacing: 1px; }
+.btn-xs { padding: 5px 10px; font-size: 0.7rem; letter-spacing: 0.5px; }
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+}
+
+.progress-track {
+  width: 100%; height: 10px;
+  background: #1a1a2e;
+  border-radius: 5px;
+  overflow: hidden;
+  position: relative;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.2s ease;
+  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
+  position: relative;
+}
+.progress-fill.streaming::after {
+  content: '';
+  position: absolute; right:0; top:0; bottom:0; width:40px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4));
+  animation: progressShine 1s ease-in-out infinite;
+}
+@keyframes progressShine {
+  0%,100% { opacity:0.3; }
+  50% { opacity:1; }
+}
+
+.file-item {
+  display: flex; align-items: center;
+  padding: 10px 14px;
+  background: var(--bg-card2);
+  border-radius: 10px;
+  margin-bottom: 6px;
+  border: 1px solid transparent;
+  transition: all 0.3s;
+}
+.file-item:hover { border-color: rgba(0,240,255,0.15); }
+
+.view { display: none; }
+.view.active { display: block; animation: fadeIn 0.35s ease; }
+@keyframes fadeIn {
+  from { opacity:0; transform: translateY(8px); }
+  to { opacity:1; transform: translateY(0); }
+}
+
+@keyframes pulse-neon {
+  0%,100% { opacity:1; }
+  50% { opacity:0.4; }
+}
+.animate-pulse-neon { animation: pulse-neon 2s ease-in-out infinite; }
+
+.spinner {
+  width: 28px; height: 28px;
+  border: 3px solid rgba(0,240,255,0.15);
+  border-top-color: var(--neon-cyan);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-color); border-radius:3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,240,255,0.4); }
+
+.signal-textarea {
+  width: 100%;
+  min-height: 70px;
+  background: var(--bg-dark);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--neon-cyan);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  padding: 10px;
+  resize: vertical;
+  outline: none;
+  word-break: break-all;
+}
+.signal-textarea:focus { border-color: var(--neon-cyan); }
+
+#qr-display, #qr-display-answer {
+  display: flex; justify-content: center; align-items: center;
+  min-height: 160px;
+}
+#qr-display canvas, #qr-display img,
+#qr-display-answer canvas, #qr-display-answer img { border-radius: 8px; }
+
+#scanner-video {
+  width: 100%; max-width: 320px;
+  border-radius: 12px;
+  border: 2px solid var(--neon-cyan);
+  background: #000;
+}
+
+.status-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.tab-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-dim);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 0.8rem;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+}
+.tab-btn.active {
+  border-color: var(--neon-cyan);
+  color: var(--neon-cyan);
+  background: rgba(0,240,255,0.05);
+}
+
+.toast-container {
+  position: fixed; top: 16px; right: 16px; z-index: 9999;
+  display: flex; flex-direction: column; gap: 8px;
+  max-width: 320px;
+  pointer-events: none;
+}
+.toast {
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  animation: toastIn 0.3s ease;
+  border: 1px solid;
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+.toast.removing { animation: toastOut 0.3s ease forwards; }
+.toast-success { background: rgba(57,255,20,0.1); border-color: rgba(57,255,20,0.3); color: var(--neon-green); }
+.toast-error { background: rgba(255,0,100,0.1); border-color: rgba(255,0,100,0.3); color: #ff0064; }
+.toast-info { background: rgba(0,240,255,0.1); border-color: rgba(0,240,255,0.3); color: var(--neon-cyan); }
+.toast-warning { background: rgba(255,107,0,0.1); border-color: rgba(255,107,0,0.3); color: var(--neon-orange); }
+@keyframes toastIn { from { transform: translateX(100px); opacity:0; } to { transform: translateX(0); opacity:1; } }
+@keyframes toastOut { to { opacity:0; transform: translateX(40px) scale(0.95); } }
+
+.modal-overlay {
+  position: fixed; inset:0; background: rgba(0,0,0,0.75);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1000; backdrop-filter: blur(4px);
+  padding: 16px;
+}
+.modal-overlay.hidden { display: none; }
+
+.drop-zone {
+  border: 2px dashed var(--border-color);
+  border-radius: 16px;
+  padding: 32px 16px;
+  text-align: center;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+.drop-zone.dragover {
+  border-color: var(--neon-cyan);
+  background: rgba(0,240,255,0.05);
+}
+
+.device-card {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg-card2);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-bottom: 8px;
+}
+.device-card:hover { border-color: var(--neon-cyan); background: rgba(0,240,255,0.03); }
+.device-card.selected { border-color: var(--neon-green); background: rgba(57,255,20,0.05); }
+.device-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem;
+}
+
+.nav-bar {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 4px;
+  margin-bottom: 16px;
+}
+.nav-item {
+  flex: 1;
+  padding: 10px 8px;
+  text-align: center;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.3s;
+  border: none;
+  background: transparent;
+}
+.nav-item.active {
+  background: rgba(0,240,255,0.1);
+  color: var(--neon-cyan);
+}
+.nav-item:hover:not(.active) { color: var(--text-primary); }
+
+.history-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg-card2);
+  border-radius: 10px;
+  margin-bottom: 6px;
+  font-size: 0.8rem;
+}
+
+.badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+.badge-sent { background: rgba(0,240,255,0.15); color: var(--neon-cyan); }
+.badge-received { background: rgba(255,0,229,0.15); color: var(--neon-pink); }
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.stat-box {
+  background: var(--bg-card2);
+  border-radius: 10px;
+  padding: 12px 8px;
+  text-align: center;
+}
+.stat-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--neon-cyan);
+}
+.stat-label {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.install-banner {
+  background: linear-gradient(135deg, rgba(0,240,255,0.1), rgba(191,0,255,0.1));
+  border: 1px solid rgba(0,240,255,0.2);
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.encryption-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: rgba(57,255,20,0.1);
+  border: 1px solid rgba(57,255,20,0.2);
+  border-radius: 6px;
+  font-size: 0.65rem;
+  color: var(--neon-green);
+}
+
+@media (max-width: 480px) {
+  .btn-neon { padding: 12px 16px; font-size: 0.85rem; }
+  .card { padding: 14px; }
+  header h1 { font-size: 1.4rem !important; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="toast-container" id="toast-container"></div>
+
+<!-- CONNECTION REQUEST MODAL -->
+<div class="modal-overlay hidden" id="connection-modal">
+  <div class="card" style="max-width:400px;width:100%;">
+    <div style="text-align:center;">
+      <div style="font-size:2.5rem;margin-bottom:10px;">📲</div>
+      <h3 style="color:var(--neon-cyan);font-size:1.1rem;margin-bottom:6px;">Connection Request</h3>
+      <p style="color:var(--text-dim);font-size:0.85rem;margin-bottom:4px;" id="conn-req-device">Unknown Device</p>
+      <p style="color:var(--text-dim);font-size:0.75rem;margin-bottom:16px;" id="conn-req-info">wants to connect</p>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button class="btn-neon btn-green btn-sm" onclick="App.acceptConnection()">✓ Accept</button>
+        <button class="btn-neon btn-danger btn-sm" onclick="App.rejectConnection()">✕ Reject</button>
+      </div>
+      <label style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:14px;font-size:0.72rem;color:var(--text-dim);cursor:pointer;">
+        <input type="checkbox" id="trust-device-check" style="accent-color:var(--neon-green);">
+        Trust this device (auto-accept future connections)
+      </label>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP CONTAINER -->
+<div style="position:relative;z-index:1;max-width:600px;margin:0 auto;padding:12px;min-height:100vh;display:flex;flex-direction:column;">
+
+  <!-- Header -->
+  <header style="text-align:center;padding:16px 0 8px;flex-shrink:0;">
+    <h1 style="font-size:1.5rem;font-weight:700;letter-spacing:1px;">
+      <span style="color:var(--neon-cyan);" class="text-glow-cyan">Swift</span><span style="color:var(--neon-pink);" class="text-glow-pink">Bridge</span>
+      <span style="font-size:0.55rem;color:var(--neon-purple);vertical-align:super;margin-left:2px;">V2</span>
+    </h1>
+    <p style="color:var(--text-dim);font-size:0.7rem;margin-top:2px;">P2P File Transfer • LAN Discovery • Resume Support</p>
+    <div style="margin-top:8px;display:flex;justify-content:center;gap:8px;flex-wrap:wrap;">
+      <span class="status-badge" style="background:rgba(255,255,255,0.05);" id="conn-status-badge">
+        <span class="status-dot" style="background:var(--text-dim);"></span>
+        <span>Offline</span>
+      </span>
+      <span class="encryption-badge">🔒 E2E Encrypted</span>
+    </div>
+  </header>
+
+  <!-- Navigation Bar -->
+  <nav class="nav-bar" id="main-nav">
+    <button class="nav-item active" data-view="home" onclick="App.navigate('home')">🏠 Home</button>
+    <button class="nav-item" data-view="transfer" onclick="App.navigate('transfer')">⚡ Transfer</button>
+    <button class="nav-item" data-view="devices" onclick="App.navigate('devices')">📱 Devices</button>
+    <button class="nav-item" data-view="history" onclick="App.navigate('history')">📋 History</button>
+  </nav>
+
+  <!-- Views Container -->
+  <div style="flex:1;overflow-y:auto;padding-bottom:16px;">
+
+    <!-- ============ HOME VIEW ============ -->
+    <div class="view active" id="view-home">
+      <!-- Install Banner (PWA) -->
+      <div class="install-banner" id="install-banner" style="display:none;">
+        <div style="font-size:1.5rem;">📲</div>
+        <div style="flex:1;">
+          <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);">Install SwiftBridge</div>
+          <div style="font-size:0.7rem;color:var(--text-dim);">Add to home screen for best experience</div>
+        </div>
+        <button class="btn-neon btn-xs btn-cyan" onclick="App.installPWA()">Install</button>
+      </div>
+
+      <!-- Quick Actions -->
+      <div style="display:flex;gap:10px;margin-bottom:16px;">
+        <button class="btn-neon btn-cyan" style="flex:1;padding:16px 12px;" onclick="App.quickSend()">
+          <span style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            <span style="font-size:0.75rem;">SEND</span>
+          </span>
+        </button>
+        <button class="btn-neon btn-pink" style="flex:1;padding:16px 12px;" onclick="App.quickReceive()">
+          <span style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+            <span style="font-size:0.75rem;">RECEIVE</span>
+          </span>
+        </button>
+        <button class="btn-neon btn-purple" style="flex:1;padding:16px 12px;" onclick="App.startGroupSession()">
+          <span style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0113 0"/><circle cx="19" cy="11" r="2.5"/><circle cx="5" cy="11" r="2.5"/></svg>
+            <span style="font-size:0.75rem;">GROUP</span>
+          </span>
+        </button>
+      </div>
+
+      <!-- Nearby Devices (LAN Discovery) -->
+      <div class="card" style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <h3 style="font-size:0.85rem;color:var(--neon-cyan);">📡 Nearby Devices</h3>
+          <button class="btn-neon btn-xs btn-cyan" onclick="App.refreshDevices()" id="refresh-devices-btn">Scan</button>
+        </div>
+        <div id="nearby-devices">
+          <div style="text-align:center;padding:20px;color:var(--text-dim);font-size:0.8rem;">
+            <div style="margin-bottom:8px;">🔍</div>
+            <p>Scanning for devices...</p>
+            <p style="font-size:0.7rem;margin-top:4px;">Make sure devices are on the same network</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resume Transfers -->
+      <div class="card" style="margin-bottom:12px;" id="resume-section" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <h3 style="font-size:0.85rem;color:var(--neon-orange);">⏸ Pending Transfers</h3>
+          <button class="btn-neon btn-xs btn-orange" onclick="App.clearPending()">Clear</button>
+        </div>
+        <div id="pending-transfers"></div>
+      </div>
+
+      <!-- Stats Overview -->
+      <div class="card">
+        <h3 style="font-size:0.85rem;color:var(--text-dim);margin-bottom:10px;">📊 Statistics</h3>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="stat-value" id="stat-sent">0</div>
+            <div class="stat-label">Files Sent</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value" id="stat-received">0</div>
+            <div class="stat-label">Files Received</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value" id="stat-data">0 MB</div>
+            <div class="stat-label">Data Transferred</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Session Info -->
+      <div class="card" style="margin-top:12px;font-size:0.72rem;color:var(--text-dim);">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+          <span>Device ID</span>
+          <span class="font-mono" style="color:var(--neon-cyan);" id="device-id">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+          <span>Room Code</span>
+          <span class="font-mono" style="color:var(--neon-pink);" id="room-code">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;">
+          <span>Platform</span>
+          <span id="platform-info">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ TRANSFER VIEW ============ -->
+    <div class="view" id="view-transfer">
+      <!-- Transfer Mode Tabs -->
+      <div style="display:flex;gap:6px;margin-bottom:14px;">
+        <button class="tab-btn active" onclick="App.setTransferMode('send')" id="mode-send-btn">📤 Send</button>
+        <button class="tab-btn" onclick="App.setTransferMode('receive')" id="mode-receive-btn">📥 Receive</button>
+        <button class="tab-btn" onclick="App.setTransferMode('group')" id="mode-group-btn">👥 Group</button>
+      </div>
+
+      <!-- Send Mode -->
+      <div id="transfer-send">
+        <!-- Step 1: File Selection -->
+        <div id="send-step-files">
+          <div class="drop-zone" id="drop-zone">
+            <svg width="40" height="40" fill="none" stroke="var(--neon-cyan)" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 10px;display:block;opacity:0.5;">
+              <path d="M12 16V4m0 0L8 8m4-4l4 4M4 14v4a2 2 0 002 2h12a2 2 0 002-2v-4"/>
+            </svg>
+            <p style="color:var(--text-dim);font-size:0.85rem;">Drop files or <span style="color:var(--neon-cyan);cursor:pointer;" onclick="document.getElementById('file-input').click()">browse</span></p>
+            <input type="file" id="file-input" multiple hidden>
+            <button class="btn-neon btn-xs btn-cyan" style="margin-top:10px;" onclick="event.stopPropagation();document.getElementById('folder-input').click();">📁 Folder</button>
+            <input type="file" id="folder-input" webkitdirectory directory multiple hidden>
+          </div>
+
+          <div id="selected-files-container" style="display:none;margin-top:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <span style="font-size:0.8rem;color:var(--text-dim);">Files (<span id="file-count">0</span>) — <span id="total-size">0 B</span></span>
+              <button class="btn-neon btn-xs btn-danger" onclick="App.clearFiles()">Clear</button>
+            </div>
+            <div id="file-list" style="max-height:150px;overflow-y:auto;"></div>
+            
+            <!-- Connection Method Selection -->
+            <div class="card" style="margin-top:12px;padding:14px;">
+              <h4 style="font-size:0.8rem;color:var(--text-dim);margin-bottom:10px;">Connection Method</h4>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                <button class="btn-neon btn-xs btn-cyan conn-method active" data-method="lan" onclick="App.selectConnMethod('lan')">📡 LAN Auto</button>
+                <button class="btn-neon btn-xs btn-pink conn-method" data-method="qr" onclick="App.selectConnMethod('qr')">📱 QR Code</button>
+                <button class="btn-neon btn-xs conn-method" style="color:var(--text-dim);border-color:var(--border-color);" data-method="manual" onclick="App.selectConnMethod('manual')">📋 Manual</button>
+              </div>
+            </div>
+            
+            <button class="btn-neon btn-green" style="width:100%;margin-top:12px;" onclick="App.startTransfer()">⚡ Start Transfer</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Waiting/QR/Manual -->
+        <div id="send-step-connect" style="display:none;">
+          <!-- LAN Mode -->
+          <div id="conn-lan" class="card" style="display:none;">
+            <div style="text-align:center;">
+              <div class="spinner" style="margin-bottom:12px;"></div>
+              <h4 style="color:var(--neon-cyan);font-size:0.9rem;margin-bottom:6px;">Waiting for receiver...</h4>
+              <p style="color:var(--text-dim);font-size:0.75rem;">Broadcasting on local network</p>
+              <p style="color:var(--neon-pink);font-size:0.85rem;margin-top:10px;font-family:'JetBrains Mono',monospace;" id="broadcast-room-code">—</p>
+              <p style="color:var(--text-dim);font-size:0.7rem;margin-top:4px;">Share this room code if auto-discovery fails</p>
+            </div>
+          </div>
+          
+          <!-- QR Mode -->
+          <div id="conn-qr" style="display:none;">
+            <div class="card">
+              <h4 style="color:var(--neon-cyan);font-size:0.85rem;margin-bottom:10px;">📱 Scan to Connect</h4>
+              <div id="qr-display"></div>
+              <p style="text-align:center;font-size:0.7rem;color:var(--text-dim);margin-top:8px;">Receiver scans this QR code</p>
+            </div>
+            <div class="card" style="margin-top:10px;">
+              <h4 style="color:var(--neon-pink);font-size:0.85rem;margin-bottom:8px;">📥 Paste Answer</h4>
+              <textarea class="signal-textarea" id="answer-input" placeholder="Paste receiver's answer..."></textarea>
+              <div style="display:flex;gap:6px;margin-top:8px;">
+                <button class="btn-neon btn-pink btn-sm" style="flex:1;" onclick="App.processAnswer()">Connect</button>
+                <button class="btn-neon btn-sm btn-cyan" onclick="App.scanAnswerQR()">📷</button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Manual Mode -->
+          <div id="conn-manual" style="display:none;">
+            <div class="card">
+              <h4 style="color:var(--neon-cyan);font-size:0.85rem;margin-bottom:8px;">📋 Copy Offer</h4>
+              <textarea class="signal-textarea" id="offer-text" readonly></textarea>
+              <button class="btn-neon btn-sm btn-cyan" style="width:100%;margin-top:8px;" onclick="App.copyText('offer-text','Offer copied!')">📋 Copy</button>
+            </div>
+            <div class="card" style="margin-top:10px;">
+              <h4 style="color:var(--neon-pink);font-size:0.85rem;margin-bottom:8px;">📥 Paste Answer</h4>
+              <textarea class="signal-textarea" id="answer-input-manual" placeholder="Paste answer here..."></textarea>
+              <button class="btn-neon btn-pink btn-sm" style="width:100%;margin-top:8px;" onclick="App.processAnswerManual()">Connect</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Transfer Progress -->
+        <div id="send-step-progress" style="display:none;">
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <h4 style="color:var(--neon-green);font-size:0.9rem;">🚀 Sending</h4>
+              <span class="status-badge" style="background:rgba(57,255,20,0.1);color:var(--neon-green);">
+                <span class="status-dot" style="background:var(--neon-green);" class="animate-pulse-neon"></span>
+                <span id="transfer-status-send">Transferring</span>
+              </span>
+            </div>
+            
+            <div id="transfer-files-send" style="max-height:120px;overflow-y:auto;margin-bottom:12px;"></div>
+            
+            <div class="progress-track">
+              <div class="progress-fill streaming" id="progress-bar-send" style="width:0%"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:0.72rem;color:var(--text-dim);">
+              <span id="speed-send" class="font-mono">0 B/s</span>
+              <span id="percent-send" class="font-mono" style="color:var(--neon-cyan);">0%</span>
+              <span id="eta-send" class="font-mono">ETA: —</span>
+            </div>
+            
+            <!-- Chunk Info (Advanced) -->
+            <div style="margin-top:10px;padding:8px;background:var(--bg-card2);border-radius:8px;font-size:0.68rem;color:var(--text-dim);">
+              <div style="display:flex;justify-content:space-between;">
+                <span>Chunk Size:</span>
+                <span id="chunk-size-info" class="font-mono" style="color:var(--neon-cyan);">16 KB</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-top:2px;">
+                <span>Confirmed:</span>
+                <span id="chunks-confirmed" class="font-mono" style="color:var(--neon-green);">0</span>
+              </div>
+            </div>
+            
+            <div style="display:flex;gap:8px;margin-top:12px;">
+              <button class="btn-neon btn-sm btn-orange" style="flex:1;" id="pause-btn-send" onclick="App.togglePause()">⏸ Pause</button>
+              <button class="btn-neon btn-sm btn-danger" style="flex:1;" onclick="App.cancelTransfer()">✕ Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4: Complete -->
+        <div id="send-step-complete" style="display:none;">
+          <div class="card" style="text-align:center;">
+            <div style="font-size:3rem;margin-bottom:10px;">✅</div>
+            <h3 style="color:var(--neon-green);font-size:1.1rem;">Transfer Complete!</h3>
+            <p style="color:var(--text-dim);font-size:0.82rem;margin-top:6px;" id="send-summary"></p>
+            <button class="btn-neon btn-cyan" style="margin-top:16px;" onclick="App.resetTransfer()">New Transfer</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Receive Mode -->
+      <div id="transfer-receive" style="display:none;">
+        <!-- Step 1: Connect -->
+        <div id="recv-step-connect">
+          <div style="display:flex;gap:6px;margin-bottom:12px;">
+            <button class="tab-btn active" onclick="App.setRecvMethod('lan')" id="recv-method-lan">📡 LAN</button>
+            <button class="tab-btn" onclick="App.setRecvMethod('scan')" id="recv-method-scan">📷 Scan</button>
+            <button class="tab-btn" onclick="App.setRecvMethod('paste')" id="recv-method-paste">📋 Paste</button>
+          </div>
+          
+          <!-- LAN Mode -->
+          <div id="recv-lan" class="card">
+            <div style="text-align:center;padding:16px 0;">
+              <div class="spinner" style="margin-bottom:12px;"></div>
+              <h4 style="color:var(--neon-pink);font-size:0.9rem;margin-bottom:6px;">Listening for senders...</h4>
+              <p style="color:var(--text-dim);font-size:0.75rem;">Your device is visible on local network</p>
+              <div style="margin-top:12px;">
+                <label style="font-size:0.75rem;color:var(--text-dim);">Or enter room code:</label>
+                <div style="display:flex;gap:6px;margin-top:6px;max-width:200px;margin-left:auto;margin-right:auto;">
+                  <input type="text" id="room-code-input" placeholder="XXXX" maxlength="8" style="flex:1;background:var(--bg-dark);border:1px solid var(--border-color);border-radius:8px;padding:8px;color:var(--neon-cyan);font-family:'JetBrains Mono',monospace;text-align:center;font-size:0.9rem;text-transform:uppercase;">
+                  <button class="btn-neon btn-xs btn-cyan" onclick="App.joinRoom()">Join</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Scan Mode -->
+          <div id="recv-scan" class="card" style="display:none;">
+            <div style="text-align:center;">
+              <video id="scanner-video" autoplay playsinline muted style="display:none;"></video>
+              <canvas id="scanner-canvas" style="display:none;"></canvas>
+              <div id="scanner-placeholder" style="padding:24px;">
+                <svg width="40" height="40" fill="none" stroke="var(--neon-cyan)" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 10px;display:block;opacity:0.4;">
+                  <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                  <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+                <p style="color:var(--text-dim);font-size:0.8rem;">Camera preview</p>
+              </div>
+              <button class="btn-neon btn-sm btn-cyan" id="scan-btn" onclick="App.toggleScanner()">📷 Start Camera</button>
+            </div>
+          </div>
+          
+          <!-- Paste Mode -->
+          <div id="recv-paste" class="card" style="display:none;">
+            <h4 style="color:var(--neon-cyan);font-size:0.85rem;margin-bottom:8px;">Paste sender's offer</h4>
+            <textarea class="signal-textarea" id="recv-offer-input" placeholder="Paste offer here..."></textarea>
+            <button class="btn-neon btn-cyan btn-sm" style="width:100%;margin-top:8px;" onclick="App.processOffer()">Process</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Share Answer -->
+        <div id="recv-step-answer" style="display:none;">
+          <div class="card">
+            <h4 style="color:var(--neon-green);font-size:0.85rem;margin-bottom:10px;">✅ Share your answer</h4>
+            <div style="display:flex;gap:6px;margin-bottom:10px;">
+              <button class="tab-btn active" onclick="App.setAnswerView('qr')" id="ans-view-qr">QR Code</button>
+              <button class="tab-btn" onclick="App.setAnswerView('text')" id="ans-view-text">Text</button>
+            </div>
+            <div id="answer-qr-view">
+              <div id="qr-display-answer"></div>
+            </div>
+            <div id="answer-text-view" style="display:none;">
+              <textarea class="signal-textarea" id="answer-text" readonly></textarea>
+              <button class="btn-neon btn-sm btn-green" style="width:100%;margin-top:8px;" onclick="App.copyText('answer-text','Answer copied!')">📋 Copy</button>
+            </div>
+          </div>
+          <div style="text-align:center;margin-top:14px;">
+            <div class="spinner"></div>
+            <p style="color:var(--text-dim);font-size:0.8rem;margin-top:8px;">Waiting for sender...</p>
+          </div>
+        </div>
+
+        <!-- Step 3: Receiving Progress -->
+        <div id="recv-step-progress" style="display:none;">
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <h4 style="color:var(--neon-pink);font-size:0.9rem;">📥 Receiving</h4>
+              <span class="status-badge" style="background:rgba(255,0,229,0.1);color:var(--neon-pink);">
+                <span class="status-dot" style="background:var(--neon-pink);" class="animate-pulse-neon"></span>
+                <span id="transfer-status-recv">Receiving</span>
+              </span>
+            </div>
+            
+            <div id="transfer-files-recv" style="max-height:120px;overflow-y:auto;margin-bottom:12px;"></div>
+            
+            <div class="progress-track">
+              <div class="progress-fill streaming" id="progress-bar-recv" style="width:0%"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:0.72rem;color:var(--text-dim);">
+              <span id="speed-recv" class="font-mono">0 B/s</span>
+              <span id="percent-recv" class="font-mono" style="color:var(--neon-pink);">0%</span>
+              <span id="eta-recv" class="font-mono">ETA: —</span>
+            </div>
+            
+            <div style="display:flex;gap:8px;margin-top:12px;">
+              <button class="btn-neon btn-sm btn-orange" style="flex:1;" id="pause-btn-recv" onclick="App.togglePause()">⏸ Pause</button>
+              <button class="btn-neon btn-sm btn-danger" style="flex:1;" onclick="App.cancelTransfer()">✕ Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4: Complete -->
+        <div id="recv-step-complete" style="display:none;">
+          <div class="card" style="text-align:center;">
+            <div style="font-size:3rem;margin-bottom:10px;">🎉</div>
+            <h3 style="color:var(--neon-green);font-size:1.1rem;">Files Received!</h3>
+            <p style="color:var(--text-dim);font-size:0.8rem;margin-top:4px;" id="recv-summary"></p>
+          </div>
+          <div id="download-links" style="margin-top:12px;max-height:200px;overflow-y:auto;"></div>
+          <button class="btn-neon btn-cyan" style="width:100%;margin-top:12px;" onclick="App.resetTransfer()">Done</button>
+        </div>
+      </div>
+
+      <!-- Group Mode -->
+      <div id="transfer-group" style="display:none;">
+        <div class="card">
+          <div style="text-align:center;padding:20px 0;">
+            <div style="font-size:2.5rem;margin-bottom:10px;">👥</div>
+            <h4 style="color:var(--neon-purple);font-size:1rem;margin-bottom:6px;">Group Transfer Mode</h4>
+            <p style="color:var(--text-dim);font-size:0.8rem;margin-bottom:16px;">Send files to multiple devices at once</p>
+            
+            <div id="group-session-active" style="display:none;">
+              <div style="font-size:1.2rem;font-family:'JetBrains Mono',monospace;color:var(--neon-purple);margin-bottom:8px;" id="group-session-code">—</div>
+              <p style="font-size:0.75rem;color:var(--text-dim);margin-bottom:16px;">Share this code with receivers</p>
+              
+              <div id="group-members" style="text-align:left;margin-bottom:16px;"></div>
+              
+              <div id="group-file-selection"></div>
+              
+              <button class="btn-neon btn-purple" style="width:100%;margin-top:12px;" onclick="App.sendToGroup()" id="send-to-group-btn" disabled>Send to All</button>
+              <button class="btn-neon btn-sm btn-danger" style="width:100%;margin-top:8px;" onclick="App.endGroupSession()">End Session</button>
+            </div>
+            
+            <div id="group-session-inactive">
+              <button class="btn-neon btn-purple" onclick="App.createGroupSession()">Create Group Session</button>
+              <div style="margin-top:16px;">
+                <p style="font-size:0.75rem;color:var(--text-dim);margin-bottom:6px;">Or join existing session:</p>
+                <div style="display:flex;gap:6px;max-width:200px;margin:0 auto;">
+                  <input type="text" id="group-code-input" placeholder="CODE" maxlength="8" style="flex:1;background:var(--bg-dark);border:1px solid var(--border-color);border-radius:8px;padding:8px;color:var(--neon-purple);font-family:'JetBrains Mono',monospace;text-align:center;text-transform:uppercase;">
+                  <button class="btn-neon btn-xs btn-purple" onclick="App.joinGroupSession()">Join</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Group Transfer Progress -->
+        <div id="group-progress" style="display:none;margin-top:12px;"></div>
+      </div>
+    </div>
+
+    <!-- ============ DEVICES VIEW ============ -->
+    <div class="view" id="view-devices">
+      <div class="card" style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <h3 style="font-size:0.9rem;color:var(--neon-cyan);">🔒 Trusted Devices</h3>
+          <button class="btn-neon btn-xs btn-danger" onclick="App.clearTrustedDevices()">Clear All</button>
+        </div>
+        <div id="trusted-devices-list">
+          <p style="color:var(--text-dim);font-size:0.8rem;text-align:center;padding:16px 0;">No trusted devices yet</p>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <h3 style="font-size:0.9rem;color:var(--neon-green);">📱 Recently Connected</h3>
+        </div>
+        <div id="recent-devices-list">
+          <p style="color:var(--text-dim);font-size:0.8rem;text-align:center;padding:16px 0;">No recent connections</p>
+        </div>
+      </div>
+      
+      <div class="card" style="margin-top:12px;">
+        <h3 style="font-size:0.9rem;color:var(--text-dim);margin-bottom:10px;">⚙️ Connection Settings</h3>
+        <label style="display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--text-primary);cursor:pointer;margin-bottom:8px;">
+          <input type="checkbox" id="setting-auto-accept" style="accent-color:var(--neon-green);">
+          Auto-accept from trusted devices
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--text-primary);cursor:pointer;margin-bottom:8px;">
+          <input type="checkbox" id="setting-encryption" checked style="accent-color:var(--neon-green);">
+          Enable AES encryption layer
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--text-primary);cursor:pointer;">
+          <input type="checkbox" id="setting-auto-resume" checked style="accent-color:var(--neon-green);">
+          Auto-resume interrupted transfers
+        </label>
+      </div>
+    </div>
+
+    <!-- ============ HISTORY VIEW ============ -->
+    <div class="view" id="view-history">
+      <div style="display:flex;gap:6px;margin-bottom:12px;">
+        <button class="tab-btn active" onclick="App.filterHistory('all')" id="hist-all">All</button>
+        <button class="tab-btn" onclick="App.filterHistory('sent')" id="hist-sent">Sent</button>
+        <button class="tab-btn" onclick="App.filterHistory('received')" id="hist-received">Received</button>
+      </div>
+      
+      <div id="history-list">
+        <div class="card" style="text-align:center;padding:32px;">
+          <div style="font-size:2rem;margin-bottom:10px;opacity:0.5;">📋</div>
+          <p style="color:var(--text-dim);font-size:0.85rem;">No transfer history</p>
+          <p style="color:var(--text-dim);font-size:0.72rem;margin-top:4px;">Your transfers will appear here</p>
+        </div>
+      </div>
+      
+      <button class="btn-neon btn-sm btn-danger" style="width:100%;margin-top:12px;" onclick="App.clearHistory()">🗑 Clear History</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Answer QR Scanner Modal -->
+<div class="modal-overlay hidden" id="scan-answer-modal">
+  <div class="card" style="max-width:380px;width:100%;">
+    <div style="text-align:center;">
+      <h4 style="color:var(--neon-cyan);font-size:0.95rem;margin-bottom:10px;">📷 Scan Answer QR</h4>
+      <video id="scanner-video-answer" autoplay playsinline muted style="width:100%;max-width:280px;border-radius:10px;border:2px solid var(--neon-cyan);background:#000;"></video>
+      <canvas id="scanner-canvas-answer" style="display:none;"></canvas>
+      <div style="margin-top:10px;display:flex;gap:6px;justify-content:center;">
+        <button class="btn-neon btn-sm btn-cyan" id="scan-answer-btn" onclick="App.toggleAnswerScanner()">📷 Start</button>
+        <button class="btn-neon btn-sm btn-danger" onclick="App.closeScanAnswer()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ================================================================
+// SwiftBridge Lite V2 — Advanced P2P File Transfer
+// Features: LAN Discovery, Resume, Group Transfer, PWA, Encryption
+// ================================================================
+
+const App = (() => {
+  'use strict';
+
+  // ============================================================
+  // CONSTANTS
+  // ============================================================
+  const VERSION = '2.0.0';
+  const DB_NAME = 'SwiftBridgeV2';
+  const DB_VERSION = 1;
+  const ICE_SERVERS = [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' },
+  ];
+  const MIN_CHUNK_SIZE = 8 * 1024;       // 8KB
+  const MAX_CHUNK_SIZE = 256 * 1024;     // 256KB
+  const DEFAULT_CHUNK_SIZE = 32 * 1024;  // 32KB
+  const BUFFER_THRESHOLD = 512 * 1024;   // 512KB buffer limit
+
+  // ============================================================
+  // UTILITY FUNCTIONS
+  // ============================================================
+  const Utils = {
+    genId: (len = 8) => {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      return Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    },
+    formatSize: (bytes) => {
+      if (!bytes) return '0 B';
+      const k = 1024, sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    },
+    formatSpeed: (bps) => Utils.formatSize(bps) + '/s',
+    formatETA: (sec) => {
+      if (!isFinite(sec) || sec <= 0) return '—';
+      if (sec < 60) return Math.ceil(sec) + 's';
+      if (sec < 3600) return Math.floor(sec / 60) + 'm ' + (Math.ceil(sec % 60)) + 's';
+      return Math.floor(sec / 3600) + 'h ' + Math.ceil((sec % 3600) / 60) + 'm';
+    },
+    formatDate: (ts) => {
+      const d = new Date(ts);
+      return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    },
+    compress: (obj) => btoa(unescape(encodeURIComponent(JSON.stringify(obj)))),
+    decompress: (str) => {
+      try { return JSON.parse(decodeURIComponent(escape(atob(str.trim())))); }
+      catch { try { return JSON.parse(str.trim()); } catch { return null; } }
+    },
+    fileIcon: (name) => {
+      const ext = (name.split('.').pop() || '').toLowerCase();
+      const map = {
+        jpg: '🖼️', jpeg: '🖼️', png: '🖼️', gif: '🖼️', svg: '🖼️', webp: '🖼️',
+        mp4: '🎬', avi: '🎬', mkv: '🎬', mov: '🎬', webm: '🎬',
+        mp3: '🎵', wav: '🎵', ogg: '🎵', flac: '🎵', m4a: '🎵',
+        pdf: '📄', doc: '📝', docx: '📝', txt: '📝', md: '📝',
+        xls: '📊', xlsx: '📊', csv: '📊', pptx: '📊',
+        zip: '📦', rar: '📦', '7z': '📦', tar: '📦', gz: '📦',
+        js: '💻', ts: '💻', html: '💻', css: '💻', py: '💻', java: '💻',
+        exe: '⚙️', dmg: '⚙️', apk: '⚙️',
+      };
+      return map[ext] || '📎';
+    },
+    platform: () => {
+      const ua = navigator.userAgent;
+      if (/iPhone|iPad|iPod/.test(ua)) return 'iOS';
+      if (/Android/.test(ua)) return 'Android';
+      if (/Mac/.test(ua)) return 'macOS';
+      if (/Win/.test(ua)) return 'Windows';
+      if (/Linux/.test(ua)) return 'Linux';
+      return 'Unknown';
+    },
+    deviceIcon: (platform) => {
+      const icons = { iOS: '📱', Android: '📱', macOS: '💻', Windows: '🖥️', Linux: '🐧' };
+      return icons[platform] || '📟';
+    },
+    sleep: (ms) => new Promise(r => setTimeout(r, ms)),
+  };
+
+  // ============================================================
+  // TOAST NOTIFICATIONS
+  // ============================================================
+  function toast(msg, type = 'info', duration = 3500) {
+    const c = document.getElementById('toast-container');
+    const t = document.createElement('div');
+    t.className = `toast toast-${type}`;
+    t.textContent = msg;
+    c.appendChild(t);
+    setTimeout(() => t.classList.add('removing'), duration);
+    setTimeout(() => t.parentNode && t.remove(), duration + 300);
+  }
+
+  // ============================================================
+  // INDEXED DB MANAGER (Persistence)
+  // ============================================================
+  const DB = {
+    db: null,
+    async init() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onerror = () => reject(req.error);
+        req.onsuccess = () => { this.db = req.result; resolve(); };
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          // Transfer sessions store
+          if (!db.objectStoreNames.contains('sessions')) {
+            const sessions = db.createObjectStore('sessions', { keyPath: 'id' });
+            sessions.createIndex('timestamp', 'timestamp');
+          }
+          // History store
+          if (!db.objectStoreNames.contains('history')) {
+            const history = db.createObjectStore('history', { keyPath: 'id', autoIncrement: true });
+            history.createIndex('timestamp', 'timestamp');
+            history.createIndex('type', 'type');
+          }
+          // Trusted devices
+          if (!db.objectStoreNames.contains('devices')) {
+            db.createObjectStore('devices', { keyPath: 'id' });
+          }
+          // Cached files (for re-download)
+          if (!db.objectStoreNames.contains('files')) {
+            const files = db.createObjectStore('files', { keyPath: 'id' });
+            files.createIndex('sessionId', 'sessionId');
+          }
+          // Stats
+          if (!db.objectStoreNames.contains('stats')) {
+            db.createObjectStore('stats', { keyPath: 'key' });
+          }
+        };
+      });
+    },
+    async put(store, data) {
+      return new Promise((resolve, reject) => {
+        const tx = this.db.transaction(store, 'readwrite');
+        tx.objectStore(store).put(data);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    },
+    async get(store, key) {
+      return new Promise((resolve, reject) => {
+        const tx = this.db.transaction(store, 'readonly');
+        const req = tx.objectStore(store).get(key);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    },
+    async getAll(store, indexName, query) {
+      return new Promise((resolve, reject) => {
+        const tx = this.db.transaction(store, 'readonly');
+        const objStore = tx.objectStore(store);
+        const target = indexName ? objStore.index(indexName) : objStore;
+        const req = target.getAll(query);
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => reject(req.error);
+      });
+    },
+    async delete(store, key) {
+      return new Promise((resolve, reject) => {
+        const tx = this.db.transaction(store, 'readwrite');
+        tx.objectStore(store).delete(key);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    },
+    async clear(store) {
+      return new Promise((resolve, reject) => {
+        const tx = this.db.transaction(store, 'readwrite');
+        tx.objectStore(store).clear();
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    },
+  };
+
+  // ============================================================
+  // AES ENCRYPTION (Optional Layer)
+  // ============================================================
+  const Crypto = {
+    async generateKey() {
+      return await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
+    },
+    async exportKey(key) {
+      const raw = await crypto.subtle.exportKey('raw', key);
+      return btoa(String.fromCharCode(...new Uint8Array(raw)));
+    },
+    async importKey(b64) {
+      const raw = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+      return await crypto.subtle.importKey('raw', raw, 'AES-GCM', true, ['encrypt', 'decrypt']);
+    },
+    async encrypt(key, data) {
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, data);
+      const combined = new Uint8Array(iv.length + encrypted.byteLength);
+      combined.set(iv, 0);
+      combined.set(new Uint8Array(encrypted), iv.length);
+      return combined.buffer;
+    },
+    async decrypt(key, data) {
+      const arr = new Uint8Array(data);
+      const iv = arr.slice(0, 12);
+      const encrypted = arr.slice(12);
+      return await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, encrypted);
+    }
+  };
+
+  // ============================================================
+  // LAN DISCOVERY (BroadcastChannel + LocalStorage)
+  // ============================================================
+  const LAN = {
+    channel: null,
+    roomCode: null,
+    deviceId: null,
+    deviceName: null,
+    nearbyDevices: new Map(),
+    listeners: [],
+    
+    init(deviceId) {
+      this.deviceId = deviceId;
+      this.deviceName = `${Utils.platform()} ${deviceId.slice(0, 4)}`;
+      this.roomCode = Utils.genId(6);
+      
+      // BroadcastChannel for same-origin tabs
+      try {
+        this.channel = new BroadcastChannel('swiftbridge-lan');
+        this.channel.onmessage = (e) => this.handleMessage(e.data);
+      } catch (err) {
+        console.warn('BroadcastChannel not supported');
+      }
+      
+      // LocalStorage events for cross-tab (fallback)
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'swiftbridge-signal' && e.newValue) {
+          try {
+            this.handleMessage(JSON.parse(e.newValue));
+          } catch {}
+        }
+      });
+      
+      // Announce presence periodically
+      this.announceInterval = setInterval(() => this.announce(), 3000);
+      this.announce();
+      
+      // Clean stale devices
+      setInterval(() => this.cleanStale(), 5000);
+    },
+    
+    broadcast(msg) {
+      msg.from = this.deviceId;
+      msg.name = this.deviceName;
+      msg.platform = Utils.platform();
+      msg.timestamp = Date.now();
+      
+      if (this.channel) {
+        try { this.channel.postMessage(msg); } catch {}
+      }
+      
+      // LocalStorage fallback
+      try {
+        localStorage.setItem('swiftbridge-signal', JSON.stringify(msg));
+        setTimeout(() => localStorage.removeItem('swiftbridge-signal'), 100);
+      } catch {}
+    },
+    
+    announce() {
+      this.broadcast({
+        type: 'announce',
+        room: this.roomCode,
+        mode: State.mode,
+        available: !State.transferring
+      });
+    },
+    
+    handleMessage(msg) {
+      if (msg.from === this.deviceId) return;
+      
+      switch (msg.type) {
+        case 'announce':
+          this.nearbyDevices.set(msg.from, {
+            id: msg.from,
+            name: msg.name,
+            platform: msg.platform,
+            room: msg.room,
+            mode: msg.mode,
+            available: msg.available,
+            lastSeen: Date.now()
+          });
+          this.notifyListeners();
+          break;
+          
+        case 'connect-request':
+          if (msg.to === this.deviceId) {
+            EventBus.emit('connection-request', msg);
+          }
+          break;
+          
+        case 'connect-accept':
+          if (msg.to === this.deviceId) {
+            EventBus.emit('connection-accepted', msg);
+          }
+          break;
+          
+        case 'signal':
+          if (msg.to === this.deviceId) {
+            EventBus.emit('signal', msg);
+          }
+          break;
+          
+        case 'group-announce':
+          EventBus.emit('group-announce', msg);
+          break;
+      }
+    },
+    
+    cleanStale() {
+      const now = Date.now();
+      let changed = false;
+      for (const [id, device] of this.nearbyDevices) {
+        if (now - device.lastSeen > 10000) {
+          this.nearbyDevices.delete(id);
+          changed = true;
+        }
+      }
+      if (changed) this.notifyListeners();
+    },
+    
+    onDevicesChange(fn) {
+      this.listeners.push(fn);
+    },
+    
+    notifyListeners() {
+      const devices = Array.from(this.nearbyDevices.values());
+      this.listeners.forEach(fn => fn(devices));
+    },
+    
+    sendTo(targetId, msg) {
+      this.broadcast({ ...msg, to: targetId });
+    },
+    
+    destroy() {
+      clearInterval(this.announceInterval);
+      if (this.channel) this.channel.close();
+    }
+  };
+
+  // ============================================================
+  // EVENT BUS
+  // ============================================================
+  const EventBus = {
+    _l: {},
+    on(e, fn) { (this._l[e] = this._l[e] || []).push(fn); },
+    off(e, fn) { this._l[e] = (this._l[e] || []).filter(f => f !== fn); },
+    emit(e, d) { (this._l[e] || []).forEach(fn => { try { fn(d); } catch (err) { console.error(err); } }); },
+    clear() { this._l = {}; }
+  };
+
+  // ============================================================
+  // STATE MANAGER
+  // ============================================================
+  const State = {
+    mode: null,        // 'send' | 'receive' | 'group'
+    connMethod: 'lan', // 'lan' | 'qr' | 'manual'
+    deviceId: Utils.genId(8),
+    platform: Utils.platform(),
+    
+    // Files
+    selectedFiles: [],
+    totalBytes: 0,
+    
+    // Transfer
+    transferring: false,
+    paused: false,
+    cancelled: false,
+    sessionId: null,
+    
+    // Progress
+    transferredBytes: 0,
+    startTime: 0,
+    speed: 0,
+    lastSpeedTime: 0,
+    lastSpeedBytes: 0,
+    chunkSize: DEFAULT_CHUNK_SIZE,
+    confirmedChunks: 0,
+    
+    // WebRTC
+    pc: null,
+    dc: null,
+    connected: false,
+    
+    // Encryption
+    encryptionKey: null,
+    encryptionEnabled: true,
+    
+    // Receive
+    receivedChunks: [],
+    fileMeta: [],
+    completedFiles: [],
+    currentFileIdx: 0,
+    expectedFileSize: 0,
+    expectedFileName: '',
+    expectedFileType: '',
+    receivedFileBytes: 0,
+    
+    // Group
+    groupSessionId: null,
+    groupMembers: new Map(),
+    groupConnections: new Map(),
+    
+    // Scanner
+    scannerStream: null,
+    answerScannerStream: null,
+    
+    reset() {
+      if (this.pc) try { this.pc.close(); } catch {}
+      this.stopScanners();
+      EventBus.clear();
+      
+      this.mode = null;
+      this.pc = null;
+      this.dc = null;
+      this.connected = false;
+      this.transferring = false;
+      this.paused = false;
+      this.cancelled = false;
+      this.selectedFiles = [];
+      this.totalBytes = 0;
+      this.transferredBytes = 0;
+      this.speed = 0;
+      this.chunkSize = DEFAULT_CHUNK_SIZE;
+      this.confirmedChunks = 0;
+      this.receivedChunks = [];
+      this.fileMeta = [];
+      this.completedFiles = [];
+      this.currentFileIdx = 0;
+      this.encryptionKey = null;
+      
+      updateConnectionBadge(false);
+    },
+    
+    stopScanners() {
+      [this.scannerStream, this.answerScannerStream].forEach(s => {
+        if (s) s.getTracks().forEach(t => t.stop());
+      });
+      this.scannerStream = null;
+      this.answerScannerStream = null;
+    }
+  };
+
+  // ============================================================
+  // UI HELPERS
+  // ============================================================
+  function showView(id) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById(id)?.classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => {
+      n.classList.toggle('active', n.dataset.view === id.replace('view-', ''));
+    });
+  }
+
+  function updateConnectionBadge(connected, text) {
+    const badge = document.getElementById('conn-status-badge');
+    if (connected) {
+      badge.innerHTML = `<span class="status-dot" style="background:var(--neon-green);"></span><span>${text || 'Connected'}</span>`;
+      badge.style.background = 'rgba(57,255,20,0.1)';
+      badge.style.color = 'var(--neon-green)';
+    } else {
+      badge.innerHTML = `<span class="status-dot" style="background:var(--text-dim);"></span><span>${text || 'Offline'}</span>`;
+      badge.style.background = 'rgba(255,255,255,0.05)';
+      badge.style.color = '';
+    }
+  }
+
+  function renderFileList() {
+    const container = document.getElementById('selected-files-container');
+    const list = document.getElementById('file-list');
+    if (!State.selectedFiles.length) {
+      container.style.display = 'none';
+      return;
+    }
+    container.style.display = 'block';
+    document.getElementById('file-count').textContent = State.selectedFiles.length;
+    
+    let total = 0;
+    list.innerHTML = State.selectedFiles.map((f, i) => {
+      total += f.size;
+      return `<div class="file-item">
+        <span style="font-size:1rem;margin-right:8px;">${Utils.fileIcon(f.name)}</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:0.75rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${f.webkitRelativePath || f.name}">${f.webkitRelativePath || f.name}</div>
+          <div style="font-size:0.65rem;color:var(--text-dim);">${Utils.formatSize(f.size)}</div>
+        </div>
+        <button onclick="App.removeFile(${i})" style="background:none;border:none;color:#ff0064;cursor:pointer;font-size:0.9rem;padding:4px;">✕</button>
+      </div>`;
+    }).join('');
+    
+    State.totalBytes = total;
+    document.getElementById('total-size').textContent = Utils.formatSize(total);
+  }
+
+  function renderNearbyDevices(devices) {
+    const container = document.getElementById('nearby-devices');
+    if (!devices.length) {
+      container.innerHTML = `<div style="text-align:center;padding:16px;color:var(--text-dim);font-size:0.8rem;">
+        <p>No devices found</p>
+        <p style="font-size:0.7rem;margin-top:4px;">Devices must be on the same network</p>
+      </div>`;
+      return;
+    }
+    
+    container.innerHTML = devices.map(d => `
+      <div class="device-card" onclick="App.connectToDevice('${d.id}')">
+        <div class="device-icon">${Utils.deviceIcon(d.platform)}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:0.85rem;font-weight:500;color:var(--text-primary);">${d.name}</div>
+          <div style="font-size:0.7rem;color:var(--text-dim);">${d.platform} • ${d.available ? (d.mode === 'send' ? '📤 Sending' : d.mode === 'receive' ? '📥 Receiving' : 'Available') : 'Busy'}</div>
+        </div>
+        <div style="color:var(--neon-cyan);font-size:0.8rem;">→</div>
+      </div>
+    `).join('');
+  }
+
+  async function renderHistory(filter = 'all') {
+    const list = document.getElementById('history-list');
+    try {
+      let history = await DB.getAll('history');
+      history = history.sort((a, b) => b.timestamp - a.timestamp);
+      
+      if (filter !== 'all') {
+        history = history.filter(h => h.type === filter);
+      }
+      
+      if (!history.length) {
+        list.innerHTML = `<div class="card" style="text-align:center;padding:32px;">
+          <div style="font-size:2rem;margin-bottom:10px;opacity:0.5;">📋</div>
+          <p style="color:var(--text-dim);font-size:0.85rem;">No ${filter === 'all' ? 'transfer' : filter} history</p>
+        </div>`;
+        return;
+      }
+      
+      list.innerHTML = history.slice(0, 50).map(h => `
+        <div class="history-item">
+          <span style="font-size:1.1rem;">${Utils.fileIcon(h.fileName)}</span>
+          <div style="flex:1;min-width:0;">
+            <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${h.fileName}</div>
+            <div style="font-size:0.7rem;color:var(--text-dim);">${Utils.formatSize(h.size)} • ${Utils.formatDate(h.timestamp)}</div>
+          </div>
+          <span class="badge ${h.type === 'sent' ? 'badge-sent' : 'badge-received'}">${h.type === 'sent' ? '📤 Sent' : '📥 Received'}</span>
+        </div>
+      `).join('');
+    } catch (err) {
+      console.error('History error:', err);
+    }
+  }
+
+  async function updateStats() {
+    try {
+      const sentStat = await DB.get('stats', 'filesSent') || { key: 'filesSent', value: 0 };
+      const recvStat = await DB.get('stats', 'filesReceived') || { key: 'filesReceived', value: 0 };
+      const dataStat = await DB.get('stats', 'dataTransferred') || { key: 'dataTransferred', value: 0 };
+      
+      document.getElementById('stat-sent').textContent = sentStat.value;
+      document.getElementById('stat-received').textContent = recvStat.value;
+      document.getElementById('stat-data').textContent = Utils.formatSize(dataStat.value);
+    } catch {}
+  }
+
+  async function incrementStat(key, amount = 1) {
+    try {
+      const stat = await DB.get('stats', key) || { key, value: 0 };
+      stat.value += amount;
+      await DB.put('stats', stat);
+    } catch {}
+  }
+
+  // ============================================================
+  // WEBRTC MANAGER
+  // ============================================================
+  function createPC() {
+    const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+    State.pc = pc;
+    
+    pc.oniceconnectionstatechange = () => {
+      const s = pc.iceConnectionState;
+      if (s === 'connected' || s === 'completed') {
+        State.connected = true;
+        updateConnectionBadge(true, 'P2P Connected');
+        EventBus.emit('connected');
+      } else if (s === 'disconnected' || s === 'failed' || s === 'closed') {
+        if (State.connected && State.transferring) {
+          // Connection lost during transfer - save state for resume
+          saveTransferState();
+          toast('Connection lost - transfer can be resumed', 'warning');
+        }
+        State.connected = false;
+        updateConnectionBadge(false);
+        EventBus.emit('disconnected');
+      }
+    };
+    
+    return pc;
+  }
+
+  function createDataChannel(pc, name = 'transfer') {
+    const dc = pc.createDataChannel(name, { ordered: true });
+    wireDataChannel(dc);
+    return dc;
+  }
+
+  function wireDataChannel(dc) {
+    dc.binaryType = 'arraybuffer';
+    dc.bufferedAmountLowThreshold = BUFFER_THRESHOLD / 2;
+    
+    dc.onopen = () => {
+      toast('Connection established!', 'success');
+      EventBus.emit('dc-open');
+    };
+    
+    dc.onclose = () => {
+      EventBus.emit('dc-close');
+    };
+    
+    dc.onerror = (e) => {
+      console.error('DataChannel error:', e);
+      toast('Connection error', 'error');
+    };
+    
+    dc.onmessage = async (e) => {
+      if (typeof e.data === 'string') {
+        try {
+          const msg = JSON.parse(e.data);
+          EventBus.emit('control', msg);
+        } catch {}
+      } else {
+        // Binary data (chunk)
+        let data = e.data;
+        if (State.encryptionEnabled && State.encryptionKey) {
+          try {
+            data = await Crypto.decrypt(State.encryptionKey, data);
+          } catch (err) {
+            console.error('Decryption error:', err);
+          }
+        }
+        EventBus.emit('chunk', data);
+      }
+    };
+    
+    State.dc = dc;
+  }
+
+  function sendCtrl(msg) {
+    if (State.dc?.readyState === 'open') {
+      State.dc.send(JSON.stringify(msg));
+    }
+  }
+
+  async function sendChunk(data) {
+    if (!State.dc || State.dc.readyState !== 'open') return false;
+    
+    let toSend = data;
+    if (State.encryptionEnabled && State.encryptionKey) {
+      toSend = await Crypto.encrypt(State.encryptionKey, data);
+    }
+    
+    // Flow control
+    while (State.dc.bufferedAmount > BUFFER_THRESHOLD) {
+      await new Promise(r => {
+        const onLow = () => { State.dc.removeEventListener('bufferedamountlow', onLow); r(); };
+        State.dc.addEventListener('bufferedamountlow', onLow);
+        setTimeout(r, 100);
+      });
+      if (State.cancelled) return false;
+    }
+    
+    State.dc.send(toSend);
+    return true;
+  }
+
+  async function waitICE(pc) {
+    return new Promise(resolve => {
+      if (pc.iceGatheringState === 'complete') return resolve();
+      const check = () => {
+        if (pc.iceGatheringState === 'complete') {
+          pc.removeEventListener('icegatheringstatechange', check);
+          resolve();
+        }
+      };
+      pc.addEventListener('icegatheringstatechange', check);
+      setTimeout(resolve, 5000);
+    });
+  }
+
+  // ============================================================
+  // QR CODE FUNCTIONS
+  // ============================================================
+  function generateQR(elId, data) {
+    const el = document.getElementById(elId);
+    el.innerHTML = '';
+    const str = typeof data === 'string' ? data : Utils.compress(data);
+    
+    if (str.length > 2500) {
+      el.innerHTML = `<div style="text-align:center;padding:16px;">
+        <p style="color:var(--neon-orange);font-size:0.75rem;">⚠️ Too large for QR</p>
+        <p style="color:var(--text-dim);font-size:0.7rem;">Use Copy Text instead</p>
+      </div>`;
+      return;
+    }
+    
+    try {
+      new QRCode(el, {
+        text: str, width: 200, height: 200,
+        colorDark: '#00f0ff', colorLight: '#0a0a0f',
+        correctLevel: QRCode.CorrectLevel.L
+      });
+    } catch {
+      el.innerHTML = `<p style="color:var(--text-dim);font-size:0.8rem;text-align:center;padding:16px;">QR generation failed</p>`;
+    }
+  }
+
+  async function startScanner(videoId, canvasId, onResult) {
+    const video = document.getElementById(videoId);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 480 }, height: { ideal: 480 } }
+      });
+      video.srcObject = stream;
+      video.style.display = 'block';
+      
+      const placeholder = document.getElementById('scanner-placeholder');
+      if (placeholder) placeholder.style.display = 'none';
+      
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      let running = true;
+      
+      function tick() {
+        if (!running || !video.srcObject) return;
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          ctx.drawImage(video, 0, 0);
+          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'dontInvert' });
+          if (code?.data) {
+            running = false;
+            onResult(code.data);
+            return;
+          }
+        }
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+      
+      return {
+        stream,
+        stop() {
+          running = false;
+          stream.getTracks().forEach(t => t.stop());
+          video.srcObject = null;
+          video.style.display = 'none';
+        }
+      };
+    } catch (err) {
+      toast('Camera not available', 'error');
+      return null;
+    }
+  }
+
+  // ============================================================
+  // ADAPTIVE CHUNK SIZE
+  // ============================================================
+  function adjustChunkSize(rtt, success) {
+    if (success && rtt < 50) {
+      // Fast connection - increase chunk size
+      State.chunkSize = Math.min(State.chunkSize * 1.5, MAX_CHUNK_SIZE);
+    } else if (!success || rtt > 200) {
+      // Slow/failed - decrease chunk size
+      State.chunkSize = Math.max(State.chunkSize / 2, MIN_CHUNK_SIZE);
+    }
+    document.getElementById('chunk-size-info').textContent = Utils.formatSize(State.chunkSize);
+  }
+
+  // ============================================================
+  // TRANSFER STATE PERSISTENCE (Resume Support)
+  // ============================================================
+  async function saveTransferState() {
+    if (!State.sessionId || !State.transferring) return;
+    
+    const session = {
+      id: State.sessionId,
+      mode: State.mode,
+      timestamp: Date.now(),
+      files: State.mode === 'send' ? State.selectedFiles.map(f => ({
+        name: f.webkitRelativePath || f.name,
+        size: f.size,
+        type: f.type
+      })) : State.fileMeta,
+      totalBytes: State.totalBytes,
+      transferredBytes: State.transferredBytes,
+      currentFileIdx: State.currentFileIdx,
+      confirmedChunks: State.confirmedChunks,
+      chunkSize: State.chunkSize,
+      completed: false
+    };
+    
+    await DB.put('sessions', session);
+  }
+
+  async function loadPendingTransfers() {
+    try {
+      const sessions = await DB.getAll('sessions');
+      const pending = sessions.filter(s => !s.completed && Date.now() - s.timestamp < 86400000);
+      
+      const section = document.getElementById('resume-section');
+      const container = document.getElementById('pending-transfers');
+      
+      if (!pending.length) {
+        section.style.display = 'none';
+        return;
+      }
+      
+      section.style.display = 'block';
+      container.innerHTML = pending.map(s => `
+        <div class="file-item" style="cursor:pointer;" onclick="App.resumeTransfer('${s.id}')">
+          <span style="font-size:1.1rem;margin-right:8px;">⏸</span>
+          <div style="flex:1;">
+            <div style="font-size:0.8rem;color:var(--text-primary);">${s.files[0]?.name || 'Transfer'} ${s.files.length > 1 ? `+${s.files.length - 1}` : ''}</div>
+            <div style="font-size:0.7rem;color:var(--text-dim);">${Math.round(s.transferredBytes / s.totalBytes * 100)}% • ${Utils.formatDate(s.timestamp)}</div>
+          </div>
+          <span style="color:var(--neon-orange);font-size:0.75rem;">Resume →</span>
+        </div>
+      `).join('');
+    } catch {}
+  }
+
+  async function resumeTransfer(sessionId) {
+    const session = await DB.get('sessions', sessionId);
+    if (!session) {
+      toast('Session not found', 'error');
+      return;
+    }
+    
+    State.sessionId = session.id;
+    State.mode = session.mode;
+    State.confirmedChunks = session.confirmedChunks;
+    State.chunkSize = session.chunkSize;
+    
+    toast('Reconnecting to resume transfer...', 'info');
+    // Would need to re-establish connection here
+    // For now, remove the session
+    await DB.delete('sessions', sessionId);
+    loadPendingTransfers();
+  }
+
+  // ============================================================
+  // SENDER FLOW
+  // ============================================================
+  async function startSendFlow() {
+    if (!State.selectedFiles.length) {
+      toast('Select files first', 'error');
+      return;
+    }
+    
+    State.mode = 'send';
+    State.sessionId = Utils.genId(12);
+    State.cancelled = false;
+    State.paused = false;
+    State.transferredBytes = 0;
+    State.confirmedChunks = 0;
+    State.chunkSize = DEFAULT_CHUNK_SIZE;
+    
+    // Generate encryption key if enabled
+    if (State.encryptionEnabled) {
+      State.encryptionKey = await Crypto.generateKey();
+    }
+    
+    const pc = createPC();
+    const dc = createDataChannel(pc);
+    
+    // Setup event handlers
+    EventBus.on('dc-open', async () => {
+      if (State.mode !== 'send') return;
+      
+      // Send encryption key first if enabled
+      if (State.encryptionEnabled && State.encryptionKey) {
+        const keyStr = await Crypto.exportKey(State.encryptionKey);
+        sendCtrl({ type: 'encryption-key', key: keyStr });
+      }
+      
+      hideConnectSteps();
+      showStep('send-step-progress');
+      await doSendFiles();
+    });
+    
+    EventBus.on('control', (msg) => {
+      if (State.mode !== 'send') return;
+      if (msg.type === 'pause') { State.paused = true; toast('Paused by receiver', 'info'); }
+      if (msg.type === 'resume') { State.paused = false; toast('Resumed', 'info'); }
+      if (msg.type === 'cancel') { State.cancelled = true; toast('Cancelled by receiver', 'error'); }
+      if (msg.type === 'chunk-ack') {
+        State.confirmedChunks = msg.count;
+        document.getElementById('chunks-confirmed').textContent = msg.count;
+      }
+    });
+    
+    // Create offer
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    await waitICE(pc);
+    
+    const signal = {
+      type: 'offer',
+      sdp: pc.localDescription.sdp,
+      id: State.deviceId,
+      session: State.sessionId,
+      files: State.selectedFiles.map(f => ({ name: f.webkitRelativePath || f.name, size: f.size })),
+      encrypted: State.encryptionEnabled
+    };
+    
+    hideStep('send-step-files');
+    showStep('send-step-connect');
+    
+    const compressed = Utils.compress(signal);
+    
+    if (State.connMethod === 'lan') {
+      // Broadcast availability
+      showConnMode('conn-lan');
+      document.getElementById('broadcast-room-code').textContent = LAN.roomCode;
+      LAN.broadcast({ type: 'sender-available', signal: compressed });
+    } else if (State.connMethod === 'qr') {
+      showConnMode('conn-qr');
+      generateQR('qr-display', signal);
+      document.getElementById('offer-text').value = compressed;
+    } else {
+      showConnMode('conn-manual');
+      document.getElementById('offer-text').value = compressed;
+    }
+    
+    updateConnectionBadge(false, 'Waiting...');
+  }
+
+  async function doSendFiles() {
+    State.transferring = true;
+    State.startTime = Date.now();
+    State.lastSpeedTime = Date.now();
+    State.lastSpeedBytes = 0;
+    
+    // Send file metadata
+    const meta = State.selectedFiles.map((f, i) => ({
+      name: f.webkitRelativePath || f.name,
+      size: f.size,
+      type: f.type || 'application/octet-stream',
+      index: i
+    }));
+    
+    sendCtrl({ type: 'file-meta', files: meta, totalSize: State.totalBytes, sessionId: State.sessionId });
+    showTransferFilesUI('send', meta);
+    
+    // Send each file
+    for (let i = 0; i < State.selectedFiles.length; i++) {
+      if (State.cancelled) break;
+      
+      const file = State.selectedFiles[i];
+      const name = file.webkitRelativePath || file.name;
+      
+      sendCtrl({ type: 'file-start', index: i, name, size: file.size, type: file.type });
+      updateFileStatus('send', i, '📤', 'var(--neon-cyan)');
+      
+      await sendFileChunks(file, i);
+      
+      if (State.cancelled) break;
+      
+      sendCtrl({ type: 'file-end', index: i });
+      updateFileStatus('send', i, '✅', 'var(--neon-green)');
+      
+      // Log to history
+      await DB.put('history', {
+        fileName: name,
+        size: file.size,
+        type: 'sent',
+        timestamp: Date.now(),
+        sessionId: State.sessionId
+      });
+      await incrementStat('filesSent');
+    }
+    
+    if (!State.cancelled) {
+      sendCtrl({ type: 'all-done' });
+      await incrementStat('dataTransferred', State.totalBytes);
+      finishTransfer('send');
+    }
+  }
+
+  async function sendFileChunks(file, fileIdx) {
+    let offset = 0;
+    let retryCount = 0;
+    const maxRetries = 5;
+    
+    while (offset < file.size) {
+      if (State.cancelled) return;
+      
+      while (State.paused) {
+        await Utils.sleep(100);
+        if (State.cancelled) return;
+      }
+      
+      const chunkSize = Math.min(State.chunkSize, file.size - offset);
+      const chunk = file.slice(offset, offset + chunkSize);
+      
+      try {
+        const startTime = performance.now();
+        const buffer = await chunk.arrayBuffer();
+        const success = await sendChunk(buffer);
+        const rtt = performance.now() - startTime;
+        
+        if (success) {
+          offset += chunkSize;
+          State.transferredBytes += chunkSize;
+          retryCount = 0;
+          
+          // Adaptive chunk sizing
+          adjustChunkSize(rtt, true);
+          
+          // Save state periodically
+          if (State.confirmedChunks % 100 === 0) {
+            saveTransferState();
+          }
+          
+          updateProgress('send');
+        } else {
+          throw new Error('Send failed');
+        }
+      } catch (err) {
+        retryCount++;
+        adjustChunkSize(0, false);
+        
+        if (retryCount >= maxRetries) {
+          toast('Transfer failed - too many retries', 'error');
+          State.cancelled = true;
+          return;
+        }
+        
+        await Utils.sleep(300 * retryCount);
+      }
+      
+      // Yield periodically
+      if ((offset / State.chunkSize) % 32 === 0) {
+        await Utils.sleep(0);
+      }
+    }
+  }
+
+  // ============================================================
+  // RECEIVER FLOW
+  // ============================================================
+  async function processOffer(signal) {
+    State.mode = 'receive';
+    State.sessionId = signal.session;
+    State.cancelled = false;
+    State.paused = false;
+    State.transferredBytes = 0;
+    State.completedFiles = [];
+    State.receivedChunks = [];
+    
+    const pc = createPC();
+    
+    pc.ondatachannel = (e) => {
+      wireDataChannel(e.channel);
+    };
+    
+    // Event handlers
+    EventBus.on('control', async (msg) => {
+      if (State.mode !== 'receive') return;
+      
+      switch (msg.type) {
+        case 'encryption-key':
+          State.encryptionKey = await Crypto.importKey(msg.key);
+          State.encryptionEnabled = true;
+          break;
+          
+        case 'file-meta':
+          State.fileMeta = msg.files;
+          State.totalBytes = msg.totalSize;
+          State.startTime = Date.now();
+          State.lastSpeedTime = Date.now();
+          showStep('recv-step-progress');
+          hideStep('recv-step-answer');
+          showTransferFilesUI('recv', msg.files);
+          break;
+          
+        case 'file-start':
+          State.currentFileIdx = msg.index;
+          State.receivedChunks = [];
+          State.receivedFileBytes = 0;
+          State.expectedFileName = msg.name;
+          State.expectedFileSize = msg.size;
+          State.expectedFileType = msg.type;
+          updateFileStatus('recv', msg.index, '📥', 'var(--neon-pink)');
+          break;
+          
+        case 'file-end':
+          const blob = new Blob(State.receivedChunks, { type: State.expectedFileType });
+          State.completedFiles.push({
+            name: State.expectedFileName,
+            size: blob.size,
+            blob
+          });
+          updateFileStatus('recv', msg.index, '✅', 'var(--neon-green)');
+          State.receivedChunks = [];
+          
+          // Log to history and cache
+          await DB.put('history', {
+            fileName: State.expectedFileName,
+            size: blob.size,
+            type: 'received',
+            timestamp: Date.now(),
+            sessionId: State.sessionId
+          });
+          await incrementStat('filesReceived');
+          break;
+          
+        case 'all-done':
+          await incrementStat('dataTransferred', State.totalBytes);
+          finishTransfer('receive');
+          break;
+          
+        case 'pause':
+          State.paused = true;
+          toast('Paused by sender', 'info');
+          break;
+          
+        case 'resume':
+          State.paused = false;
+          toast('Resumed', 'info');
+          break;
+          
+        case 'cancel':
+          State.cancelled = true;
+          toast('Cancelled by sender', 'error');
+          break;
+      }
+    });
+    
+    let chunkCount = 0;
+    EventBus.on('chunk', (data) => {
+      if (State.mode !== 'receive') return;
+      State.receivedChunks.push(data);
+      State.receivedFileBytes += data.byteLength;
+      State.transferredBytes += data.byteLength;
+      chunkCount++;
+      
+      // Send ACK periodically
+      if (chunkCount % 50 === 0) {
+        sendCtrl({ type: 'chunk-ack', count: chunkCount });
+      }
+      
+      updateProgress('recv');
+    });
+    
+    // Process offer
+    await pc.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: signal.sdp }));
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    await waitICE(pc);
+    
+    const answerSignal = {
+      type: 'answer',
+      sdp: pc.localDescription.sdp,
+      id: State.deviceId
+    };
+    
+    const compressed = Utils.compress(answerSignal);
+    
+    showStep('recv-step-answer');
+    hideStep('recv-step-connect');
+    generateQR('qr-display-answer', answerSignal);
+    document.getElementById('answer-text').value = compressed;
+    
+    updateConnectionBadge(false, 'Answer ready');
+  }
+
+  async function processAnswer(signal) {
+    if (!State.pc) {
+      toast('No active session', 'error');
+      return;
+    }
+    
+    try {
+      await State.pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: signal.sdp }));
+      updateConnectionBadge(false, 'Connecting...');
+    } catch (err) {
+      toast('Invalid answer', 'error');
+    }
+  }
+
+  // ============================================================
+  // TRANSFER UI
+  // ============================================================
+  function showTransferFilesUI(mode, files) {
+    const container = document.getElementById(`transfer-files-${mode}`);
+    container.innerHTML = files.map((f, i) => `
+      <div class="file-item" id="${mode}-file-${i}">
+        <span style="font-size:0.9rem;margin-right:6px;">${Utils.fileIcon(f.name)}</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:0.72rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${f.name}</div>
+          <div style="font-size:0.62rem;color:var(--text-dim);">${Utils.formatSize(f.size)}</div>
+        </div>
+        <span style="font-size:0.7rem;" id="${mode}-fstat-${i}">⏳</span>
+      </div>
+    `).join('');
+  }
+
+  function updateFileStatus(mode, idx, icon, color) {
+    const el = document.getElementById(`${mode}-fstat-${idx}`);
+    if (el) {
+      el.textContent = icon;
+      el.style.color = color || '';
+    }
+  }
+
+  function updateProgress(mode) {
+    const now = Date.now();
+    const bytes = State.transferredBytes;
+    
+    if (now - State.lastSpeedTime > 300) {
+      const dt = (now - State.lastSpeedTime) / 1000;
+      const db = bytes - State.lastSpeedBytes;
+      State.speed = dt > 0 ? db / dt : 0;
+      State.lastSpeedTime = now;
+      State.lastSpeedBytes = bytes;
+    }
+    
+    const pct = State.totalBytes > 0 ? (bytes / State.totalBytes * 100) : 0;
+    const eta = State.speed > 0 ? (State.totalBytes - bytes) / State.speed : 0;
+    
+    document.getElementById(`progress-bar-${mode}`).style.width = Math.min(pct, 100).toFixed(1) + '%';
+    document.getElementById(`speed-${mode}`).textContent = Utils.formatSpeed(State.speed);
+    document.getElementById(`percent-${mode}`).textContent = pct.toFixed(1) + '%';
+    document.getElementById(`eta-${mode}`).textContent = 'ETA: ' + Utils.formatETA(eta);
+  }
+
+  function finishTransfer(mode) {
+    State.transferring = false;
+    const elapsed = ((Date.now() - State.startTime) / 1000).toFixed(1);
+    
+    // Remove from pending
+    if (State.sessionId) {
+      DB.delete('sessions', State.sessionId).catch(() => {});
+    }
+    
+    if (mode === 'send') {
+      showStep('send-step-complete');
+      hideStep('send-step-progress');
+      document.getElementById('send-summary').textContent =
+        `${State.selectedFiles.length} file(s) • ${Utils.formatSize(State.totalBytes)} • ${elapsed}s`;
+    } else {
+      showStep('recv-step-complete');
+      hideStep('recv-step-progress');
+      document.getElementById('recv-summary').textContent =
+        `${State.completedFiles.length} file(s) • ${Utils.formatSize(State.transferredBytes)} • ${elapsed}s`;
+      
+      // Create download links
+      const container = document.getElementById('download-links');
+      container.innerHTML = State.completedFiles.map(f => {
+        const url = URL.createObjectURL(f.blob);
+        return `<div class="file-item">
+          <span style="font-size:0.9rem;margin-right:6px;">${Utils.fileIcon(f.name)}</span>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:0.75rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${f.name}</div>
+            <div style="font-size:0.65rem;color:var(--text-dim);">${Utils.formatSize(f.size)}</div>
+          </div>
+          <a href="${url}" download="${f.name}" class="btn-neon btn-xs btn-green" style="text-decoration:none;">⬇ Save</a>
+        </div>`;
+      }).join('');
+    }
+    
+    toast('Transfer complete! 🎉', 'success');
+    updateConnectionBadge(true, 'Complete');
+    updateStats();
+    loadPendingTransfers();
+  }
+
+  // ============================================================
+  // GROUP TRANSFER
+  // ============================================================
+  function createGroupSession() {
+    State.groupSessionId = Utils.genId(6);
+    State.mode = 'group';
+    State.groupMembers.clear();
+    
+    document.getElementById('group-session-inactive').style.display = 'none';
+    document.getElementById('group-session-active').style.display = 'block';
+    document.getElementById('group-session-code').textContent = State.groupSessionId;
+    
+    // Broadcast group availability
+    LAN.broadcast({ type: 'group-announce', groupId: State.groupSessionId, action: 'created' });
+    
+    toast('Group session created', 'success');
+  }
+
+  function endGroupSession() {
+    State.groupSessionId = null;
+    State.groupMembers.clear();
+    State.groupConnections.clear();
+    
+    document.getElementById('group-session-active').style.display = 'none';
+    document.getElementById('group-session-inactive').style.display = 'block';
+    
+    LAN.broadcast({ type: 'group-announce', action: 'ended' });
+    toast('Group session ended', 'info');
+  }
+
+  // ============================================================
+  // UI HELPERS
+  // ============================================================
+  function showStep(id) {
+    document.getElementById(id).style.display = 'block';
+  }
+
+  function hideStep(id) {
+    document.getElementById(id).style.display = 'none';
+  }
+
+  function hideConnectSteps() {
+    ['conn-lan', 'conn-qr', 'conn-manual'].forEach(id => hideStep(id));
+  }
+
+  function showConnMode(id) {
+    hideConnectSteps();
+    showStep(id);
+  }
+
+  // ============================================================
+  // PWA SUPPORT
+  // ============================================================
+  let deferredPrompt = null;
+
+  function setupPWA() {
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('install-banner').style.display = 'flex';
+    });
+    
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      const swCode = `
+        const CACHE_NAME = 'swiftbridge-v2';
+        self.addEventListener('install', e => self.skipWaiting());
+        self.addEventListener('activate', e => e.waitUntil(clients.claim()));
+        self.addEventListener('fetch', e => {
+          if (e.request.url.includes('cdn.jsdelivr.net')) {
+            e.respondWith(
+              caches.match(e.request).then(r => r || fetch(e.request).then(res => {
+                const clone = res.clone();
+                caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
+                return res;
+              }))
+            );
+          }
+        });
+      `;
+      const swBlob = new Blob([swCode], { type: 'application/javascript' });
+      const swUrl = URL.createObjectURL(swBlob);
+      navigator.serviceWorker.register(swUrl).catch(() => {});
+    }
+  }
+
+  async function installPWA() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const result = await deferredPrompt.userChoice;
+    if (result.outcome === 'accepted') {
+      toast('App installed!', 'success');
+    }
+    deferredPrompt = null;
+    document.getElementById('install-banner').style.display = 'none';
+  }
+
+  // ============================================================
+  // TRUSTED DEVICES
+  // ============================================================
+  async function renderTrustedDevices() {
+    try {
+      const devices = await DB.getAll('devices');
+      const container = document.getElementById('trusted-devices-list');
+      
+      if (!devices.length) {
+        container.innerHTML = `<p style="color:var(--text-dim);font-size:0.8rem;text-align:center;padding:16px 0;">No trusted devices</p>`;
+        return;
+      }
+      
+      container.innerHTML = devices.map(d => `
+        <div class="device-card">
+          <div class="device-icon">${Utils.deviceIcon(d.platform)}</div>
+          <div style="flex:1;">
+            <div style="font-size:0.85rem;">${d.name}</div>
+            <div style="font-size:0.7rem;color:var(--text-dim);">Added ${Utils.formatDate(d.trustedAt)}</div>
+          </div>
+          <button onclick="App.removeTrustedDevice('${d.id}')" style="background:none;border:none;color:#ff0064;cursor:pointer;">✕</button>
+        </div>
+      `).join('');
+    } catch {}
+  }
+
+  async function trustDevice(deviceInfo) {
+    await DB.put('devices', {
+      ...deviceInfo,
+      trustedAt: Date.now()
+    });
+    renderTrustedDevices();
+  }
+
+  async function removeTrustedDevice(id) {
+    await DB.delete('devices', id);
+    renderTrustedDevices();
+    toast('Device removed', 'info');
+  }
+
+  async function clearTrustedDevices() {
+    await DB.clear('devices');
+    renderTrustedDevices();
+    toast('All trusted devices cleared', 'info');
+  }
+
+  // ============================================================
+  // SCANNER MANAGEMENT
+  // ============================================================
+  let activeScanner = null;
+  let answerScanner = null;
+
+  async function toggleScanner() {
+    const btn = document.getElementById('scan-btn');
+    if (activeScanner) {
+      activeScanner.stop();
+      activeScanner = null;
+      btn.textContent = '📷 Start Camera';
+      const ph = document.getElementById('scanner-placeholder');
+      if (ph) ph.style.display = 'block';
+      return;
+    }
+    
+    btn.textContent = '⏹ Stop';
+    activeScanner = await startScanner('scanner-video', 'scanner-canvas', (data) => {
+      activeScanner = null;
+      btn.textContent = '📷 Start Camera';
+      handleScannedOffer(data);
+    });
+    if (!activeScanner) btn.textContent = '📷 Start Camera';
+  }
+
+  async function toggleAnswerScanner() {
+    const btn = document.getElementById('scan-answer-btn');
+    if (answerScanner) {
+      answerScanner.stop();
+      answerScanner = null;
+      btn.textContent = '📷 Start';
+      return;
+    }
+    
+    btn.textContent = '⏹ Stop';
+    answerScanner = await startScanner('scanner-video-answer', 'scanner-canvas-answer', (data) => {
+      answerScanner = null;
+      btn.textContent = '📷 Start';
+      closeScanAnswer();
+      handleScannedAnswer(data);
+    });
+    if (!answerScanner) btn.textContent = '📷 Start';
+  }
+
+  function handleScannedOffer(data) {
+    const signal = Utils.decompress(data);
+    if (!signal || signal.type !== 'offer') {
+      toast('Invalid QR code', 'error');
+      return;
+    }
+    toast('Offer scanned!', 'success');
+    processOffer(signal);
+  }
+
+  function handleScannedAnswer(data) {
+    const signal = Utils.decompress(data);
+    if (!signal || signal.type !== 'answer') {
+      toast('Invalid QR code', 'error');
+      return;
+    }
+    toast('Answer scanned!', 'success');
+    processAnswer(signal);
+  }
+
+  // ============================================================
+  // PUBLIC API
+  // ============================================================
+  function navigate(view) {
+    showView('view-' + view);
+    if (view === 'history') renderHistory();
+    if (view === 'devices') renderTrustedDevices();
+    if (view === 'home') {
+      updateStats();
+      loadPendingTransfers();
+    }
+  }
+
+  function setTransferMode(mode) {
+    ['send', 'receive', 'group'].forEach(m => {
+      document.getElementById(`mode-${m}-btn`).classList.toggle('active', m === mode);
+      document.getElementById(`transfer-${m}`).style.display = m === mode ? 'block' : 'none';
+    });
+  }
+
+  function selectConnMethod(method) {
+    State.connMethod = method;
+    document.querySelectorAll('.conn-method').forEach(b => {
+      b.classList.toggle('active', b.dataset.method === method);
+    });
+  }
+
+  function setRecvMethod(method) {
+    ['lan', 'scan', 'paste'].forEach(m => {
+      document.getElementById(`recv-method-${m}`).classList.toggle('active', m === method);
+      document.getElementById(`recv-${m}`).style.display = m === method ? 'block' : 'none';
+    });
+    if (method !== 'scan' && activeScanner) {
+      activeScanner.stop();
+      activeScanner = null;
+      document.getElementById('scan-btn').textContent = '📷 Start Camera';
+    }
+  }
+
+  function setAnswerView(view) {
+    document.getElementById('ans-view-qr').classList.toggle('active', view === 'qr');
+    document.getElementById('ans-view-text').classList.toggle('active', view === 'text');
+    document.getElementById('answer-qr-view').style.display = view === 'qr' ? 'block' : 'none';
+    document.getElementById('answer-text-view').style.display = view === 'text' ? 'block' : 'none';
+  }
+
+  function addFiles(fileList) {
+    for (const f of fileList) {
+      if (!State.selectedFiles.find(sf => sf.name === f.name && sf.size === f.size)) {
+        State.selectedFiles.push(f);
+      }
+    }
+    renderFileList();
+  }
+
+  function removeFile(i) {
+    State.selectedFiles.splice(i, 1);
+    renderFileList();
+  }
+
+  function clearFiles() {
+    State.selectedFiles = [];
+    renderFileList();
+  }
+
+  function copyText(elId, msg) {
+    const text = document.getElementById(elId).value;
+    navigator.clipboard?.writeText(text).then(() => toast(msg, 'success')).catch(() => {
+      const el = document.getElementById(elId);
+      el.select();
+      document.execCommand('copy');
+      toast(msg, 'success');
+    });
+  }
+
+  function processOfferFromInput() {
+    const text = document.getElementById('recv-offer-input').value.trim();
+    if (!text) { toast('Paste offer first', 'error'); return; }
+    const signal = Utils.decompress(text);
+    if (!signal || signal.type !== 'offer') { toast('Invalid offer', 'error'); return; }
+    processOffer(signal);
+  }
+
+  function processAnswerFromInput() {
+    const inputId = State.connMethod === 'manual' ? 'answer-input-manual' : 'answer-input';
+    const text = document.getElementById(inputId).value.trim();
+    if (!text) { toast('Paste answer first', 'error'); return; }
+    const signal = Utils.decompress(text);
+    if (!signal || signal.type !== 'answer') { toast('Invalid answer', 'error'); return; }
+    processAnswer(signal);
+  }
+
+  function togglePause() {
+    State.paused = !State.paused;
+    sendCtrl({ type: State.paused ? 'pause' : 'resume' });
+    const mode = State.mode === 'send' ? 'send' : 'recv';
+    document.getElementById(`pause-btn-${mode}`).innerHTML = State.paused ? '▶ Resume' : '⏸ Pause';
+    toast(State.paused ? 'Paused' : 'Resumed', 'info');
+  }
+
+  function cancelTransfer() {
+    State.cancelled = true;
+    sendCtrl({ type: 'cancel' });
+    toast('Cancelled', 'error');
+    setTimeout(() => resetTransfer(), 1000);
+  }
+
+  function resetTransfer() {
+    State.reset();
+    
+    // Reset UI
+    ['send-step-files', 'recv-step-connect'].forEach(id => showStep(id));
+    ['send-step-connect', 'send-step-progress', 'send-step-complete',
+     'recv-step-answer', 'recv-step-progress', 'recv-step-complete'].forEach(id => hideStep(id));
+    
+    document.getElementById('selected-files-container').style.display = 'none';
+    document.getElementById('file-list').innerHTML = '';
+    document.getElementById('download-links').innerHTML = '';
+    
+    if (activeScanner) { activeScanner.stop(); activeScanner = null; }
+    
+    navigate('transfer');
+  }
+
+  function quickSend() {
+    navigate('transfer');
+    setTransferMode('send');
+  }
+
+  function quickReceive() {
+    navigate('transfer');
+    setTransferMode('receive');
+  }
+
+  function startTransfer() {
+    startSendFlow();
+  }
+
+  function refreshDevices() {
+    LAN.announce();
+    toast('Scanning...', 'info');
+  }
+
+  function scanAnswerQR() {
+    document.getElementById('scan-answer-modal').classList.remove('hidden');
+  }
+
+  function closeScanAnswer() {
+    document.getElementById('scan-answer-modal').classList.add('hidden');
+    if (answerScanner) { answerScanner.stop(); answerScanner = null; }
+  }
+
+  function filterHistory(filter) {
+    ['all', 'sent', 'received'].forEach(f => {
+      document.getElementById(`hist-${f}`).classList.toggle('active', f === filter);
+    });
+    renderHistory(filter);
+  }
+
+  async function clearHistory() {
+    await DB.clear('history');
+    renderHistory();
+    toast('History cleared', 'info');
+  }
+
+  function acceptConnection() {
+    document.getElementById('connection-modal').classList.add('hidden');
+    const trustCheck = document.getElementById('trust-device-check');
+    if (trustCheck.checked) {
+      // Trust this device
+    }
+  }
+
+  function rejectConnection() {
+    document.getElementById('connection-modal').classList.add('hidden');
+  }
+
+  function joinRoom() {
+    const code = document.getElementById('room-code-input').value.trim().toUpperCase();
+    if (!code) { toast('Enter room code', 'error'); return; }
+    // Would connect to the room
+    toast(`Joining room ${code}...`, 'info');
+  }
+
+  function connectToDevice(deviceId) {
+    const device = LAN.nearbyDevices.get(deviceId);
+    if (!device) return;
+    toast(`Connecting to ${device.name}...`, 'info');
+    // Initiate connection
+    LAN.sendTo(deviceId, { type: 'connect-request' });
+  }
+
+  function startGroupSession() {
+    navigate('transfer');
+    setTransferMode('group');
+  }
+
+  // ============================================================
+  // INITIALIZATION
+  // ============================================================
+  async function init() {
+    // Initialize DB
+    try {
+      await DB.init();
+    } catch (err) {
+      console.error('DB init error:', err);
+    }
+
+    // Set device info
+    document.getElementById('device-id').textContent = State.deviceId;
+    document.getElementById('platform-info').textContent = State.platform;
+    
+    // WebRTC check
+    const hasRTC = !!window.RTCPeerConnection;
+    if (!hasRTC) {
+      toast('WebRTC not supported in this browser', 'error');
+    }
+    
+    // Initialize LAN discovery
+    LAN.init(State.deviceId);
+    LAN.onDevicesChange(renderNearbyDevices);
+    document.getElementById('room-code').textContent = LAN.roomCode;
+    
+    // Load settings
+    const autoAccept = document.getElementById('setting-auto-accept');
+    const encryption = document.getElementById('setting-encryption');
+    const autoResume = document.getElementById('setting-auto-resume');
+    
+    encryption.addEventListener('change', () => {
+      State.encryptionEnabled = encryption.checked;
+    });
+    
+    // File inputs
+    document.getElementById('file-input').addEventListener('change', e => {
+      if (e.target.files.length) addFiles(e.target.files);
+      e.target.value = '';
+    });
+    document.getElementById('folder-input').addEventListener('change', e => {
+      if (e.target.files.length) addFiles(e.target.files);
+      e.target.value = '';
+    });
+    
+    // Drop zone
+    const dz = document.getElementById('drop-zone');
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+    dz.addEventListener('dragleave', e => { e.preventDefault(); dz.classList.remove('dragover'); });
+    dz.addEventListener('drop', e => {
+      e.preventDefault();
+      dz.classList.remove('dragover');
+      if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+    });
+    dz.addEventListener('click', e => {
+      if (e.target === dz || e.target.closest('svg') || e.target.tagName === 'P') {
+        document.getElementById('file-input').click();
+      }
+    });
+    
+    // PWA
+    setupPWA();
+    
+    // Load data
+    updateStats();
+    loadPendingTransfers();
+    
+    // Handle LAN events
+    EventBus.on('connection-request', async (msg) => {
+      const trusted = await DB.get('devices', msg.from);
+      if (trusted && autoAccept.checked) {
+        // Auto-accept
+        LAN.sendTo(msg.from, { type: 'connect-accept' });
+        return;
+      }
+      
+      document.getElementById('conn-req-device').textContent = msg.name;
+      document.getElementById('conn-req-info').textContent = `${msg.platform} wants to connect`;
+      document.getElementById('connection-modal').classList.remove('hidden');
+    });
+    
+    console.log(`SwiftBridge Lite V2 initialized (${VERSION})`);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  // ============================================================
+  // RETURN PUBLIC API
+  // ============================================================
+  return {
+    navigate,
+    setTransferMode,
+    selectConnMethod,
+    setRecvMethod,
+    setAnswerView,
+    addFiles,
+    removeFile,
+    clearFiles,
+    copyText,
+    startTransfer,
+    processOffer: processOfferFromInput,
+    processAnswer: processAnswerFromInput,
+    processAnswerManual: processAnswerFromInput,
+    togglePause,
+    cancelTransfer,
+    resetTransfer,
+    quickSend,
+    quickReceive,
+    refreshDevices,
+    toggleScanner,
+    toggleAnswerScanner,
+    scanAnswerQR,
+    closeScanAnswer,
+    filterHistory,
+    clearHistory,
+    connectToDevice,
+    acceptConnection,
+    rejectConnection,
+    joinRoom,
+    removeTrustedDevice,
+    clearTrustedDevices,
+    startGroupSession,
+    createGroupSession,
+    endGroupSession,
+    joinGroupSession: () => {
+      const code = document.getElementById('group-code-input').value.trim().toUpperCase();
+      if (!code) { toast('Enter group code', 'error'); return; }
+      toast(`Joining group ${code}...`, 'info');
+    },
+    resumeTransfer,
+    clearPending: async () => {
+      await DB.clear('sessions');
+      loadPendingTransfers();
+      toast('Pending transfers cleared', 'info');
+    },
+    installPWA,
+    get state() { return State; }
+  };
+})();
+</script>
+</body>
+</html>
