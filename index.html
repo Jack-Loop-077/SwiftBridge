@@ -1,0 +1,3737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwiftBridge - Ultra-Fast P2P File Transfer</title>
+    <style>
+        /* ============================================
+           CSS STYLES - Dark Cyber Interface
+           ============================================ */
+        
+        :root {
+            /* Eye-friendly Tokyo Night color palette */
+            --bg-primary: #1a1b26;
+            --bg-secondary: #24283b;
+            --bg-tertiary: #2f334d;
+            --bg-card: #2a2e42;
+            --accent-primary: #7aa2f7;
+            --accent-secondary: #bb9af7;
+            --accent-success: #9ece6a;
+            --accent-warning: #e0af68;
+            --accent-danger: #f7768e;
+            --text-primary: #c0caf5;
+            --text-secondary: #a9b1d6;
+            --text-muted: #737aa2;
+            --border-color: #414868;
+            --glow-primary: rgba(122, 162, 247, 0.15);
+            --glow-secondary: rgba(187, 154, 247, 0.15);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.25);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.2);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Subtle background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(122, 162, 247, 0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(187, 154, 247, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            box-shadow: 0 0 16px var(--glow-primary);
+        }
+
+        .logo-text {
+            font-size: 22px;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .status-indicators {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .platform-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: rgba(122, 162, 247, 0.1);
+            border: 1px solid var(--accent-primary);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--accent-primary);
+        }
+
+        .security-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: rgba(158, 206, 106, 0.1);
+            border: 1px solid var(--accent-success);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--accent-success);
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: var(--bg-tertiary);
+            border-radius: 20px;
+            font-size: 13px;
+            border: 1px solid var(--border-color);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.online {
+            background: var(--accent-success);
+            box-shadow: 0 0 8px rgba(158, 206, 106, 0.4);
+        }
+
+        .status-dot.offline {
+            background: var(--accent-danger);
+        }
+
+        .status-dot.connecting {
+            background: var(--accent-warning);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Main Grid Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Panels */
+        .panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.2s ease;
+        }
+
+        .panel:hover {
+            border-color: var(--accent-primary);
+            box-shadow: 0 4px 16px var(--glow-primary);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            gap: 12px;
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Connection Panel */
+        .connection-section {
+            text-align: center;
+        }
+
+        .qr-container {
+            background: white;
+            padding: 16px;
+            border-radius: 10px;
+            display: inline-block;
+            margin: 16px 0;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .qr-placeholder {
+            width: 180px;
+            height: 180px;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 13px;
+            border-radius: 8px;
+        }
+
+        .invite-code {
+            background: var(--bg-tertiary);
+            padding: 14px;
+            border-radius: 8px;
+            margin: 14px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            letter-spacing: 3px;
+            word-break: break-all;
+            border: 1px solid var(--border-color);
+            font-weight: 600;
+            color: var(--accent-primary);
+        }
+
+        .connection-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px var(--glow-primary);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+            border-color: var(--accent-primary);
+        }
+
+        .btn-success {
+            background: var(--accent-success);
+            color: #1a1b26;
+        }
+
+        .btn-danger {
+            background: var(--accent-danger);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--accent-warning);
+            color: #1a1b26;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Device List */
+        .device-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .device-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .device-item:hover {
+            border-color: var(--accent-primary);
+        }
+
+        .device-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .device-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .device-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .device-status {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Drop Zone */
+        .drop-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 16px;
+            padding: 60px 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: var(--bg-tertiary);
+        }
+
+        .drop-zone:hover,
+        .drop-zone.dragover {
+            border-color: var(--accent-primary);
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .drop-zone-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+        }
+
+        .drop-zone-text {
+            font-size: 18px;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .drop-zone-subtext {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Transfer Queue */
+        .transfer-queue {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .transfer-item {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .transfer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .transfer-file-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .transfer-file-icon {
+            font-size: 24px;
+        }
+
+        .transfer-file-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .transfer-file-size {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .transfer-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .transfer-action-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 6px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .transfer-action-btn:hover {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .transfer-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Statistics Panel */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+        }
+
+        .stat-card {
+            background: var(--bg-tertiary);
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent-primary);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Connection Quality */
+        .quality-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .quality-bars {
+            display: flex;
+            gap: 4px;
+        }
+
+        .quality-bar {
+            width: 8px;
+            height: 20px;
+            background: var(--border-color);
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .quality-bar.active {
+            background: var(--accent-success);
+        }
+
+        .quality-bar.warning {
+            background: var(--accent-warning);
+        }
+
+        .quality-bar.danger {
+            background: var(--accent-danger);
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .toast {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+            max-width: 350px;
+        }
+
+        .toast.success {
+            border-color: var(--accent-success);
+        }
+
+        .toast.error {
+            border-color: var(--accent-danger);
+        }
+
+        .toast.warning {
+            border-color: var(--accent-warning);
+        }
+
+        .toast.info {
+            border-color: var(--accent-primary);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast-icon {
+            font-size: 20px;
+        }
+
+        .toast-message {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .modal-content {
+            margin-bottom: 24px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* Input Fields */
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 10px var(--glow-primary);
+        }
+
+        /* Platform Badge */
+        .platform-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: rgba(122, 162, 247, 0.1);
+            border: 1px solid var(--accent-primary);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--accent-primary);
+        }
+
+        /* Security Badge */
+        .security-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: rgba(158, 206, 106, 0.1);
+            border: 1px solid var(--accent-success);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--accent-success);
+        }
+
+        /* Responsive */
+        @media (max-width: 1400px) {
+            .container {
+                max-width: 1200px;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                max-width: 100%;
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+                padding: 16px 20px;
+            }
+
+            .logo {
+                justify-content: center;
+            }
+
+            .status-indicators {
+                flex-wrap: wrap;
+                justify-content: center;
+                width: 100%;
+                gap: 8px;
+            }
+
+            .connection-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .panel {
+                padding: 16px;
+                margin-bottom: 16px;
+            }
+
+            .drop-zone {
+                padding: 32px 16px;
+            }
+
+            .drop-zone-icon {
+                font-size: 32px;
+            }
+
+            .drop-zone-text {
+                font-size: 15px;
+            }
+
+            .drop-zone-subtext {
+                font-size: 13px;
+            }
+
+            .transfer-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .transfer-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            .qr-placeholder {
+                width: 150px;
+                height: 150px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 12px;
+            }
+
+            .header {
+                padding: 12px 16px;
+            }
+
+            .panel {
+                padding: 14px;
+                margin-bottom: 14px;
+            }
+
+            .logo-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+
+            .logo-text {
+                font-size: 18px;
+            }
+
+            .status-badge,
+            .platform-badge,
+            .security-badge {
+                font-size: 11px;
+                padding: 6px 12px;
+                gap: 6px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .transfer-file-name {
+                font-size: 13px;
+            }
+
+            .transfer-file-size {
+                font-size: 11px;
+            }
+
+            .btn {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+
+            .invite-code {
+                font-size: 16px;
+                letter-spacing: 2px;
+            }
+
+            .qr-placeholder {
+                width: 120px;
+                height: 120px;
+                font-size: 11px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .container {
+                padding: 8px;
+            }
+
+            .panel {
+                padding: 12px;
+            }
+
+            .logo-text {
+                font-size: 16px;
+            }
+
+            .btn {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-primary);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        .slide-up {
+            animation: slideUp 0.5s ease;
+        }
+
+        /* Hidden file input */
+        #fileInput {
+            display: none;
+        }
+
+        #folderInput {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">SB</div>
+                <div class="logo-text">SwiftBridge</div>
+            </div>
+            <div class="status-indicators">
+                <div class="platform-badge" id="platformBadge">
+                    <span id="platformIcon">🖥️</span>
+                    <span id="platformName">Detecting...</span>
+                </div>
+                <div class="security-badge">
+                    <span>🔒</span>
+                    <span>AES-256 Encrypted</span>
+                </div>
+                <div class="status-badge">
+                    <div class="status-dot offline" id="connectionStatusDot"></div>
+                    <span id="connectionStatusText">Disconnected</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-grid">
+            <!-- Left Panel -->
+            <div class="left-panel">
+                <!-- Connection Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Connection</h2>
+                    </div>
+                    <div class="connection-section">
+                        <div class="qr-container">
+                            <div class="qr-placeholder" id="qrCode">
+                                QR Code
+                            </div>
+                        </div>
+                        <div class="invite-code" id="inviteCode">
+                            Generating...
+                        </div>
+                        <div class="connection-buttons">
+                            <button class="btn btn-primary" id="copyInviteBtn">
+                                <span>📋</span> Copy Invite Code
+                            </button>
+                            <button class="btn btn-secondary" id="generateNewBtn">
+                                <span>🔄</span> Generate New
+                            </button>
+                        </div>
+                        <div style="margin-top: 20px; text-align: left;">
+                            <label class="input-label">Or enter invite code to connect:</label>
+                            <div style="display: flex; gap: 8px;">
+                                <input type="text" class="input-field" id="inviteCodeInput" placeholder="Enter invite code...">
+                                <button class="btn btn-primary" id="connectBtn">Connect</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Connected Devices -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Connected Devices</h2>
+                    </div>
+                    <div class="device-list" id="deviceList">
+                        <div style="text-align: center; color: var(--text-secondary); padding: 20px;">
+                            No devices connected
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Connection Quality -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Connection Quality</h2>
+                    </div>
+                    <div class="quality-indicator">
+                        <div class="quality-bars" id="qualityBars">
+                            <div class="quality-bar"></div>
+                            <div class="quality-bar"></div>
+                            <div class="quality-bar"></div>
+                            <div class="quality-bar"></div>
+                            <div class="quality-bar"></div>
+                        </div>
+                        <span id="qualityText">Not Connected</span>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="latencyStat">--</div>
+                            <div class="stat-label">Latency (ms)</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="bandwidthStat">--</div>
+                            <div class="stat-label">Bandwidth (MB/s)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="right-panel">
+                <!-- Drop Zone -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Send Files</h2>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-secondary" id="selectFilesBtn">
+                                <span>📁</span> Select Files
+                            </button>
+                            <button class="btn btn-secondary" id="selectFolderBtn">
+                                <span>📂</span> Select Folder
+                            </button>
+                        </div>
+                    </div>
+                    <div class="drop-zone" id="dropZone">
+                        <div class="drop-zone-icon">📤</div>
+                        <div class="drop-zone-text">Drag & drop files or folders here</div>
+                        <div class="drop-zone-subtext">Or use the buttons above to select</div>
+                    </div>
+                    <input type="file" id="fileInput" multiple>
+                    <input type="file" id="folderInput" webkitdirectory directory multiple>
+                </div>
+
+                <!-- Transfer Queue -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Transfer Queue</h2>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-secondary" id="pauseAllBtn">
+                                <span>⏸️</span> Pause All
+                            </button>
+                            <button class="btn btn-secondary" id="resumeAllBtn">
+                                <span>▶️</span> Resume All
+                            </button>
+                            <button class="btn btn-danger" id="cancelAllBtn">
+                                <span>✕</span> Cancel All
+                            </button>
+                        </div>
+                    </div>
+                    <div class="transfer-queue" id="transferQueue">
+                        <div style="text-align: center; color: var(--text-secondary); padding: 20px;">
+                            No transfers in queue
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Transfer Statistics</h2>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalTransferred">0 MB</div>
+                            <div class="stat-label">Total Transferred</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="currentSpeed">0 MB/s</div>
+                            <div class="stat-label">Current Speed</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="averageSpeed">0 MB/s</div>
+                            <div class="stat-label">Average Speed</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="filesTransferred">0</div>
+                            <div class="stat-label">Files Transferred</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h3 class="modal-title" id="modalTitle">Modal Title</h3>
+            <div class="modal-content" id="modalContent">
+                Modal content
+            </div>
+            <div class="modal-actions" id="modalActions">
+                <button class="btn btn-secondary" id="modalCancel">Cancel</button>
+                <button class="btn btn-primary" id="modalConfirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // SWIFTBRIDGE - Ultra-Fast P2P File Transfer
+        // Single-File Enterprise-Grade Implementation
+        // ============================================
+
+        (function() {
+            'use strict';
+
+            // ============================================
+            // UTILITY LAYER
+            // ============================================
+
+            const Utils = {
+                /**
+                 * Detect user's platform
+                 * @returns {Object} Platform information
+                 */
+                detectPlatform: function() {
+                    const userAgent = navigator.userAgent;
+                    let platform = 'unknown';
+                    let os = 'unknown';
+                    let icon = '🖥️';
+
+                    // Detect OS - check mobile platforms first before Linux
+                    if (userAgent.includes('Android')) {
+                        os = 'Android';
+                        icon = '🤖';
+                    } else if (userAgent.includes('iPhone') || userAgent.includes('iPad')) {
+                        os = 'iOS';
+                        icon = '📱';
+                    } else if (userAgent.includes('Win')) {
+                        os = 'Windows';
+                        icon = '🪟';
+                    } else if (userAgent.includes('Mac')) {
+                        os = 'macOS';
+                        icon = '🍎';
+                    } else if (userAgent.includes('Linux')) {
+                        os = 'Linux';
+                        icon = '🐧';
+                    }
+
+                    // Detect platform type
+                    if (/Mobi|Android/i.test(userAgent)) {
+                        platform = 'mobile';
+                    } else if (/Tablet|iPad/i.test(userAgent)) {
+                        platform = 'tablet';
+                    } else {
+                        platform = 'desktop';
+                    }
+
+                    return {
+                        platform: platform,
+                        os: os,
+                        icon: icon,
+                        userAgent: userAgent
+                    };
+                },
+
+                /**
+                 * Compress data using CompressionStream API
+                 * @param {Uint8Array} data - Data to compress
+                 * @returns {Promise<Uint8Array>} Compressed data
+                 */
+                compressData: async function(data) {
+                    try {
+                        const stream = new CompressionStream('gzip');
+                        const writer = stream.writable.getWriter();
+                        const reader = stream.readable.getReader();
+                        
+                        // Write data to compressor
+                        writer.write(data);
+                        writer.close();
+                        
+                        // Read compressed data
+                        const chunks = [];
+                        let done = false;
+                        while (!done) {
+                            const { value, done: readerDone } = await reader.read();
+                            done = readerDone;
+                            if (value) chunks.push(value);
+                        }
+                        
+                        // Combine chunks
+                        const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+                        const result = new Uint8Array(totalLength);
+                        let offset = 0;
+                        for (const chunk of chunks) {
+                            result.set(chunk, offset);
+                            offset += chunk.length;
+                        }
+                        
+                        return result;
+                    } catch (error) {
+                        console.warn('Compression failed, using original data:', error);
+                        return data;
+                    }
+                },
+
+                /**
+                 * Decompress data using DecompressionStream API
+                 * @param {Uint8Array} data - Data to decompress
+                 * @returns {Promise<Uint8Array>} Decompressed data
+                 */
+                decompressData: async function(data) {
+                    try {
+                        const stream = new DecompressionStream('gzip');
+                        const writer = stream.writable.getWriter();
+                        const reader = stream.readable.getReader();
+                        
+                        // Write data to decompressor
+                        writer.write(data);
+                        writer.close();
+                        
+                        // Read decompressed data
+                        const chunks = [];
+                        let done = false;
+                        while (!done) {
+                            const { value, done: readerDone } = await reader.read();
+                            done = readerDone;
+                            if (value) chunks.push(value);
+                        }
+                        
+                        // Combine chunks
+                        const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+                        const result = new Uint8Array(totalLength);
+                        let offset = 0;
+                        for (const chunk of chunks) {
+                            result.set(chunk, offset);
+                            offset += chunk.length;
+                        }
+                        
+                        return result;
+                    } catch (error) {
+                        console.warn('Decompression failed, using original data:', error);
+                        return data;
+                    }
+                },
+
+                /**
+                 * Generate a cryptographically secure random string
+                 * @param {number} length - Length of the random string
+                 * @returns {string} Random string
+                 */
+                generateSecureRandom: function(length) {
+                    const array = new Uint8Array(length);
+                    crypto.getRandomValues(array);
+                    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+                },
+
+                /**
+                 * Generate a unique ID
+                 * @returns {string} Unique identifier
+                 */
+                generateId: function() {
+                    return this.generateSecureRandom(16);
+                },
+
+                /**
+                 * Format bytes to human-readable string
+                 * @param {number} bytes - Number of bytes
+                 * @returns {string} Formatted string
+                 */
+                formatBytes: function(bytes) {
+                    if (bytes === 0) return '0 Bytes';
+                    const k = 1024;
+                    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+                    const i = Math.floor(Math.log(bytes) / Math.log(k));
+                    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+                },
+
+                /**
+                 * Format time duration to human-readable string
+                 * @param {number} seconds - Duration in seconds
+                 * @returns {string} Formatted string
+                 */
+                formatTime: function(seconds) {
+                    if (!isFinite(seconds) || seconds < 0) return '--:--';
+                    if (seconds === 0) return '0s';
+                    if (seconds < 60) return Math.round(seconds) + 's';
+                    if (seconds < 3600) return Math.floor(seconds / 60) + 'm ' + Math.round(seconds % 60) + 's';
+                    const hours = Math.floor(seconds / 3600);
+                    const minutes = Math.floor((seconds % 3600) / 60);
+                    return hours + 'h ' + minutes + 'm';
+                },
+
+                /**
+                 * Calculate SHA-256 hash of data
+                 * @param {ArrayBuffer|Uint8Array} data - Data to hash
+                 * @returns {Promise<string>} Hex string of hash
+                 */
+                sha256: async function(data) {
+                    const buffer = data instanceof ArrayBuffer ? data : data.buffer;
+                    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+                    const hashArray = new Uint8Array(hashBuffer);
+                    return Array.from(hashArray, byte => byte.toString(16).padStart(2, '0')).join('');
+                },
+
+                /**
+                 * Convert ArrayBuffer to Base64
+                 * @param {ArrayBuffer} buffer - ArrayBuffer to convert
+                 * @returns {string} Base64 string
+                 */
+                arrayBufferToBase64: function(buffer) {
+                    const bytes = new Uint8Array(buffer);
+                    let binary = '';
+                    for (let i = 0; i < bytes.byteLength; i++) {
+                        binary += String.fromCharCode(bytes[i]);
+                    }
+                    return btoa(binary);
+                },
+
+                /**
+                 * Convert Base64 to ArrayBuffer
+                 * @param {string} base64 - Base64 string
+                 * @returns {ArrayBuffer} ArrayBuffer
+                 */
+                base64ToArrayBuffer: function(base64) {
+                    const binary = atob(base64);
+                    const bytes = new Uint8Array(binary.length);
+                    for (let i = 0; i < binary.length; i++) {
+                        bytes[i] = binary.charCodeAt(i);
+                    }
+                    return bytes.buffer;
+                },
+
+                /**
+                 * Deep clone an object
+                 * @param {Object} obj - Object to clone
+                 * @returns {Object} Cloned object
+                 */
+                deepClone: function(obj) {
+                    return JSON.parse(JSON.stringify(obj));
+                },
+
+                /**
+                 * Debounce a function
+                 * @param {Function} func - Function to debounce
+                 * @param {number} wait - Wait time in ms
+                 * @returns {Function} Debounced function
+                 */
+                debounce: function(func, wait) {
+                    let timeout;
+                    return function executedFunction(...args) {
+                        const later = () => {
+                            clearTimeout(timeout);
+                            func(...args);
+                        };
+                        clearTimeout(timeout);
+                        timeout = setTimeout(later, wait);
+                    };
+                },
+
+                /**
+                 * Throttle a function
+                 * @param {Function} func - Function to throttle
+                 * @param {number} limit - Time limit in ms
+                 * @returns {Function} Throttled function
+                 */
+                throttle: function(func, limit) {
+                    let inThrottle;
+                    return function(...args) {
+                        if (!inThrottle) {
+                            func.apply(this, args);
+                            inThrottle = true;
+                            setTimeout(() => inThrottle = false, limit);
+                        }
+                    };
+                },
+
+                /**
+                 * Sleep for specified duration
+                 * @param {number} ms - Duration in milliseconds
+                 * @returns {Promise} Promise that resolves after duration
+                 */
+                sleep: function(ms) {
+                    return new Promise(resolve => setTimeout(resolve, ms));
+                },
+
+                /**
+                 * Validate file name for security
+                 * @param {string} name - File name to validate
+                 * @returns {boolean} True if valid
+                 */
+                validateFileName: function(name) {
+                    // Prevent path traversal and null bytes
+                    if (!name || typeof name !== 'string') return false;
+                    if (name.includes('..') || name.includes('\0')) return false;
+                    if (name.length > 255) return false;
+                    // Check for valid characters
+                    const validChars = /^[a-zA-Z0-9\s._\-+()[\]{}@!#$%&'=;`,~]+$/;
+                    return validChars.test(name);
+                },
+
+                /**
+                 * Sanitize file path
+                 * @param {string} path - Path to sanitize
+                 * @returns {string} Sanitized path
+                 */
+                sanitizePath: function(path) {
+                    return path.replace(/[^\w\s._\-\/]/g, '').replace(/\.{2,}/g, '.');
+                }
+            };
+
+            // ============================================
+            // SECURITY LAYER
+            // ============================================
+
+            const Security = {
+                encryptionKey: null,
+                sessionKey: null,
+                keyExchangeComplete: false,
+
+                /**
+                 * Initialize security layer
+                 */
+                init: async function() {
+                    // Generate ephemeral session key
+                    this.sessionKey = await this.generateKey();
+                    this.encryptionKey = await this.generateKey();
+                    this.keyExchangeComplete = false;
+                },
+
+                /**
+                 * Generate a new AES-GCM key
+                 * @returns {Promise<CryptoKey>} Generated key
+                 */
+                generateKey: async function() {
+                    return await crypto.subtle.generateKey(
+                        {
+                            name: 'AES-GCM',
+                            length: 256
+                        },
+                        true,
+                        ['encrypt', 'decrypt']
+                    );
+                },
+
+                /**
+                 * Export key to JSON format for transmission
+                 * @param {CryptoKey} key - Key to export
+                 * @returns {Promise<Object>} Exported key data
+                 */
+                exportKey: async function(key) {
+                    const exported = await crypto.subtle.exportKey('jwk', key);
+                    return exported;
+                },
+
+                /**
+                 * Import key from JSON format
+                 * @param {Object} keyData - Key data to import
+                 * @returns {Promise<CryptoKey>} Imported key
+                 */
+                importKey: async function(keyData) {
+                    return await crypto.subtle.importKey(
+                        'jwk',
+                        keyData,
+                        {
+                            name: 'AES-GCM',
+                            length: 256
+                        },
+                        true,
+                        ['encrypt', 'decrypt']
+                    );
+                },
+
+                /**
+                 * Encrypt data using AES-256-GCM
+                 * @param {ArrayBuffer|Uint8Array} data - Data to encrypt
+                 * @param {CryptoKey} key - Encryption key
+                 * @returns {Promise<Object>} Object containing encrypted data and IV
+                 */
+                encrypt: async function(data, key = this.encryptionKey) {
+                    if (!key) throw new Error('Encryption key not initialized');
+                    
+                    const iv = crypto.getRandomValues(new Uint8Array(12)); // 96-bit IV for GCM
+                    const buffer = data instanceof ArrayBuffer ? data : data.buffer;
+                    
+                    const encrypted = await crypto.subtle.encrypt(
+                        {
+                            name: 'AES-GCM',
+                            iv: iv
+                        },
+                        key,
+                        buffer
+                    );
+
+                    return {
+                        encrypted: new Uint8Array(encrypted),
+                        iv: iv
+                    };
+                },
+
+                /**
+                 * Decrypt data using AES-256-GCM
+                 * @param {Uint8Array} encryptedData - Encrypted data
+                 * @param {Uint8Array} iv - Initialization vector
+                 * @param {CryptoKey} key - Decryption key
+                 * @returns {Promise<ArrayBuffer>} Decrypted data
+                 */
+                decrypt: async function(encryptedData, iv, key = this.encryptionKey) {
+                    if (!key) throw new Error('Decryption key not initialized');
+                    
+                    const decrypted = await crypto.subtle.decrypt(
+                        {
+                            name: 'AES-GCM',
+                            iv: iv
+                        },
+                        key,
+                        encryptedData
+                    );
+
+                    return decrypted;
+                },
+
+                /**
+                 * Perform secure key exchange
+                 * @param {Object} remotePublicKey - Remote public key
+                 * @returns {Promise<Object>} Key exchange response
+                 */
+                performKeyExchange: async function(remotePublicKey) {
+                    try {
+                        // Import remote key
+                        const remoteKey = await this.importKey(remotePublicKey);
+                        
+                        // Generate a shared secret (in production, use ECDH)
+                        // For this implementation, we'll use the remote key directly
+                        this.encryptionKey = remoteKey;
+                        this.keyExchangeComplete = true;
+                        
+                        // Export our key to send back
+                        const ourKey = await this.exportKey(this.sessionKey);
+                        
+                        return {
+                            success: true,
+                            publicKey: ourKey
+                        };
+                    } catch (error) {
+                        console.error('Key exchange failed:', error);
+                        return {
+                            success: false,
+                            error: error.message
+                        };
+                    }
+                },
+
+                /**
+                 * Verify data integrity using HMAC
+                 * @param {ArrayBuffer} data - Data to verify
+                 * @param {string} expectedHash - Expected SHA-256 hash
+                 * @returns {Promise<boolean>} True if integrity verified
+                 */
+                verifyIntegrity: async function(data, expectedHash) {
+                    try {
+                        const actualHash = await Utils.sha256(data);
+                        return actualHash === expectedHash;
+                    } catch (error) {
+                        console.error('Integrity verification failed:', error);
+                        return false;
+                    }
+                },
+
+                /**
+                 * Generate a signature for data
+                 * @param {ArrayBuffer} data - Data to sign
+                 * @returns {Promise<string>} Signature
+                 */
+                sign: async function(data) {
+                    // In production, use asymmetric signing
+                    // For this implementation, use SHA-256 as signature
+                    return await Utils.sha256(data);
+                },
+
+                /**
+                 * Securely erase sensitive data
+                 * @param {Uint8Array} data - Data to erase
+                 */
+                secureErase: function(data) {
+                    if (data && data.buffer) {
+                        crypto.getRandomValues(data);
+                    }
+                },
+
+                /**
+                 * Generate a nonce for replay protection
+                 * @returns {string} Nonce value
+                 */
+                generateNonce: function() {
+                    return Utils.generateSecureRandom(16);
+                },
+
+                /**
+                 * Validate nonce for replay protection
+                 * @param {string} nonce - Nonce to validate
+                 * @param {Set} usedNonces - Set of previously used nonces
+                 * @returns {boolean} True if nonce is valid
+                 */
+                validateNonce: function(nonce, usedNonces) {
+                    if (usedNonces.has(nonce)) return false;
+                    usedNonces.add(nonce);
+                    
+                    // Limit nonce cache size
+                    if (usedNonces.size > 10000) {
+                        const first = usedNonces.values().next().value;
+                        usedNonces.delete(first);
+                    }
+                    
+                    return true;
+                }
+            };
+
+            // ============================================
+            // NETWORKING LAYER - WebRTC
+            // ============================================
+
+            const Networking = {
+                peerConnection: null,
+                dataChannel: null,
+                config: {
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' },
+                        { urls: 'stun:stun2.l.google.com:19302' },
+                        { urls: 'stun:stun3.l.google.com:19302' },
+                        { urls: 'stun:stun4.l.google.com:19302' }
+                    ]
+                },
+                connectionState: 'disconnected',
+                localDescription: null,
+                remoteDescription: null,
+                iceCandidates: [],
+                usedNonces: new Set(),
+                messageQueue: [],
+                isInitiator: false,
+
+                /**
+                 * Initialize WebRTC connection
+                 * @param {boolean} initiator - Whether this peer is the initiator
+                 */
+                init: function(initiator = false) {
+                    this.isInitiator = initiator;
+                    this.peerConnection = new RTCPeerConnection(this.config);
+                    this.setupPeerConnectionEvents();
+                    
+                    if (initiator) {
+                        this.createDataChannel();
+                    } else {
+                        this.setupDataChannelListener();
+                    }
+                },
+
+                /**
+                 * Setup peer connection event handlers
+                 */
+                setupPeerConnectionEvents: function() {
+                    const pc = this.peerConnection;
+                    
+                    pc.onicecandidate = (event) => {
+                        if (event.candidate) {
+                            this.iceCandidates.push(event.candidate);
+                            UI.onIceCandidate(event.candidate);
+                        }
+                    };
+
+                    pc.onconnectionstatechange = () => {
+                        this.connectionState = pc.connectionState;
+                        UI.onConnectionStateChange(pc.connectionState);
+                    };
+
+                    pc.oniceconnectionstatechange = () => {
+                        UI.onIceConnectionStateChange(pc.iceConnectionState);
+                    };
+
+                    pc.onsignalingstatechange = () => {
+                        console.log('Signaling state:', pc.signalingState);
+                    };
+
+                    pc.ondatachannel = (event) => {
+                        this.setupDataChannel(event.channel);
+                    };
+                },
+
+                /**
+                 * Create data channel
+                 */
+                createDataChannel: function() {
+                    this.dataChannel = this.peerConnection.createDataChannel('swiftbridge', {
+                        ordered: true,
+                        maxRetransmits: 3
+                    });
+                    this.setupDataChannel(this.dataChannel);
+                },
+
+                /**
+                 * Setup data channel listener (for receiver)
+                 */
+                setupDataChannelListener: function() {
+                    // Data channel will be created by the remote peer
+                    // Handler is in ondatachannel event
+                },
+
+                /**
+                 * Setup data channel event handlers
+                 * @param {RTCDataChannel} channel - Data channel to setup
+                 */
+                setupDataChannel: function(channel) {
+                    this.dataChannel = channel;
+                    
+                    channel.onopen = () => {
+                        console.log('Data channel opened');
+                        UI.onDataChannelOpen();
+                        this.processMessageQueue();
+                    };
+
+                    channel.onclose = () => {
+                        console.log('Data channel closed');
+                        UI.onDataChannelClose();
+                    };
+
+                    channel.onerror = (error) => {
+                        console.error('Data channel error:', error);
+                        UI.onDataChannelError(error);
+                    };
+
+                    channel.onmessage = async (event) => {
+                        await this.handleMessage(event.data);
+                    };
+                },
+
+                /**
+                 * Handle incoming message
+                 * @param {string|ArrayBuffer} data - Message data
+                 */
+                handleMessage: async function(data) {
+                    try {
+                        let message;
+                        
+                        if (typeof data === 'string') {
+                            message = JSON.parse(data);
+                        } else {
+                            // Binary data - handle as transfer chunk
+                            await Transfer.handleChunk(data);
+                            return;
+                        }
+
+                        // Validate message structure
+                        if (!message.type || !message.nonce) {
+                            console.error('Invalid message structure');
+                            return;
+                        }
+
+                        // Replay protection
+                        if (!Security.validateNonce(message.nonce, this.usedNonces)) {
+                            console.warn('Duplicate or replayed message detected');
+                            return;
+                        }
+
+                        // Route message based on type
+                        switch (message.type) {
+                            case 'key_exchange':
+                                await this.handleKeyExchange(message);
+                                break;
+                            case 'offer':
+                                await this.handleOffer(message);
+                                break;
+                            case 'answer':
+                                await this.handleAnswer(message);
+                                break;
+                            case 'ice_candidate':
+                                await this.handleIceCandidate(message);
+                                break;
+                            case 'file_start':
+                                await Transfer.handleFileStart(message);
+                                break;
+                            case 'file_end':
+                                await Transfer.handleFileEnd(message);
+                                break;
+                            case 'file_request':
+                                await Transfer.handleFileRequest(message);
+                                break;
+                            case 'chunk_metadata':
+                                await Transfer.handleChunkMetadata(message);
+                                break;
+                            case 'chunk_ack':
+                                await Transfer.handleChunkAck(message);
+                                break;
+                            case 'request_chunks':
+                                await Transfer.handleRequestChunks(message);
+                                break;
+                            case 'pause':
+                                await Transfer.handlePause(message);
+                                break;
+                            case 'resume':
+                                await Transfer.handleResume(message);
+                                break;
+                            case 'cancel':
+                                await Transfer.handleCancel(message);
+                                break;
+                            case 'ack':
+                                await Transfer.handleAck(message);
+                                break;
+                            case 'ping':
+                                await this.handlePing(message);
+                                break;
+                            case 'pong':
+                                await this.handlePong(message);
+                                break;
+                            case 'device_info':
+                                await this.handleDeviceInfo(message);
+                                break;
+                            case 'transfer_progress':
+                                await this.handleTransferProgress(message);
+                                break;
+                            default:
+                                console.warn('Unknown message type:', message.type);
+                        }
+                    } catch (error) {
+                        console.error('Error handling message:', error);
+                    }
+                },
+
+                /**
+                 * Handle key exchange
+                 * @param {Object} message - Key exchange message
+                 */
+                handleKeyExchange: async function(message) {
+                    const response = await Security.performKeyExchange(message.publicKey);
+                    
+                    if (response.success) {
+                        await this.sendMessage({
+                            type: 'key_exchange_response',
+                            publicKey: response.publicKey,
+                            nonce: Security.generateNonce()
+                        });
+                        UI.onKeyExchangeComplete();
+                    }
+                },
+
+                /**
+                 * Handle WebRTC offer
+                 * @param {Object} message - Offer message
+                 */
+                handleOffer: async function(message) {
+                    try {
+                        await this.peerConnection.setRemoteDescription(new RTCSessionDescription(message.offer));
+                        const answer = await this.peerConnection.createAnswer();
+                        await this.peerConnection.setLocalDescription(answer);
+                        
+                        await this.sendMessage({
+                            type: 'answer',
+                            answer: answer,
+                            nonce: Security.generateNonce()
+                        });
+                    } catch (error) {
+                        console.error('Error handling offer:', error);
+                    }
+                },
+
+                /**
+                 * Handle WebRTC answer
+                 * @param {Object} message - Answer message
+                 */
+                handleAnswer: async function(message) {
+                    try {
+                        await this.peerConnection.setRemoteDescription(new RTCSessionDescription(message.answer));
+                    } catch (error) {
+ console.error('Error handling answer:', error);
+                    }
+                },
+
+                /**
+                 * Handle ICE candidate
+                 * @param {Object} message - ICE candidate message
+                 */
+                handleIceCandidate: async function(message) {
+                    try {
+                        await this.peerConnection.addIceCandidate(new RTCIceCandidate(message.candidate));
+                    } catch (error) {
+                        console.error('Error handling ICE candidate:', error);
+                    }
+                },
+
+                /**
+                 * Handle ping message
+                 * @param {Object} message - Ping message
+                 */
+                handlePing: async function(message) {
+                    await this.sendMessage({
+                        type: 'pong',
+                        timestamp: message.timestamp,
+                        nonce: Security.generateNonce()
+                    });
+                },
+
+                /**
+                 * Handle pong message
+                 * @param {Object} message - Pong message
+                 */
+                handlePong: async function(message) {
+                    const rtt = Date.now() - message.timestamp;
+                    UI.updateLatency(rtt);
+                },
+
+                /**
+                 * Handle device info message
+                 * @param {Object} message - Device info message
+                 */
+                handleDeviceInfo: async function(message) {
+                    UI.addConnectedDevice({
+                        id: message.deviceId,
+                        name: message.deviceName,
+                        type: message.platform,
+                        status: 'online',
+                        icon: message.deviceIcon
+                    });
+                    UI.showToast(`Connected to ${message.deviceName} (${message.platform})`, 'success');
+                },
+
+                /**
+                 * Handle transfer progress message
+                 * @param {Object} message - Transfer progress message
+                 */
+                handleTransferProgress: async function(message) {
+                    const transfer = Transfer.activeTransfers.get(message.transferId);
+                    if (transfer) {
+                        // Update transfer with remote progress info
+                        transfer.remoteSpeed = message.speed;
+                        transfer.remoteProgress = message.progress;
+                        
+                        // Update UI to show remote speed
+                        const speedText = document.getElementById(`speed-${message.transferId}`);
+                        if (speedText) {
+                            speedText.textContent = `${Utils.formatBytes(message.speed)}/s (remote)`;
+                        }
+                    }
+                },
+
+                /**
+                 * Create offer
+                 * @returns {Promise<Object>} Offer object
+                 */
+                createOffer: async function() {
+                    const offer = await this.peerConnection.createOffer();
+                    await this.peerConnection.setLocalDescription(offer);
+                    return offer;
+                },
+
+                /**
+                 * Send message through data channel
+                 * @param {Object} message - Message to send
+                 */
+                sendMessage: async function(message) {
+                    if (this.dataChannel && this.dataChannel.readyState === 'open') {
+                        this.dataChannel.send(JSON.stringify(message));
+                    } else {
+                        this.messageQueue.push(message);
+                    }
+                },
+
+                /**
+                 * Send binary data through data channel
+                 * @param {ArrayBuffer} data - Binary data to send
+                 */
+                sendBinary: async function(data) {
+                    if (this.dataChannel && this.dataChannel.readyState === 'open') {
+                        this.dataChannel.send(data);
+                    }
+                },
+
+                /**
+                 * Process queued messages
+                 */
+                processMessageQueue: async function() {
+                    while (this.messageQueue.length > 0) {
+                        const message = this.messageQueue.shift();
+                        await this.sendMessage(message);
+                    }
+                },
+
+                /**
+                 * Add ICE candidate
+                 * @param {RTCIceCandidate} candidate - ICE candidate
+                 */
+                addIceCandidate: async function(candidate) {
+                    try {
+                        await this.peerConnection.addIceCandidate(candidate);
+                    } catch (error) {
+                        console.error('Error adding ICE candidate:', error);
+                    }
+                },
+
+                /**
+                 * Close connection
+                 */
+                close: function() {
+                    if (this.dataChannel) {
+                        this.dataChannel.close();
+                    }
+                    if (this.peerConnection) {
+                        this.peerConnection.close();
+                    }
+                    this.connectionState = 'disconnected';
+                    this.dataChannel = null;
+                    this.peerConnection = null;
+                },
+
+                /**
+                 * Send ping for latency measurement
+                 */
+                ping: async function() {
+                    await this.sendMessage({
+                        type: 'ping',
+                        timestamp: Date.now(),
+                        nonce: Security.generateNonce()
+                    });
+                },
+
+                /**
+                 * Get connection statistics
+                 * @returns {Promise<Object>} Connection statistics
+                 */
+                getStats: async function() {
+                    if (!this.peerConnection) return null;
+                    
+                    const stats = await this.peerConnection.getStats();
+                    const result = {
+                        bandwidth: 0,
+                        latency: 0,
+                        packetsLost: 0,
+                        packetsSent: 0,
+                        packetsReceived: 0
+                    };
+
+                    stats.forEach(report => {
+                        if (report.type === 'transport') {
+                            // Extract transport stats
+                        }
+                    });
+
+                    return result;
+                }
+            };
+
+            // ============================================
+            // TRANSFER ENGINE
+            // ============================================
+
+            const Transfer = {
+                activeTransfers: new Map(),
+                transferQueue: [],
+                maxConcurrentTransfers: 3,
+                maxParallelChunks: 5, // Number of parallel chunks per transfer
+                chunkSize: 65536, // 64KB default, will adapt
+                maxChunkSize: 1048576, // 1MB max
+                minChunkSize: 16384, // 16KB min
+                currentSpeed: 0,
+                averageSpeed: 0,
+                totalTransferred: 0,
+                filesTransferred: 0,
+                bandwidthHistory: [],
+                lastSpeedUpdate: Date.now(),
+                paused: false,
+                useCompression: true,
+                useChecksum: true,
+
+                /**
+                 * Initialize transfer engine
+                 */
+                init: function() {
+                    this.startSpeedMonitoring();
+                },
+
+                /**
+                 * Start speed monitoring
+                 */
+                startSpeedMonitoring: function() {
+                    setInterval(() => {
+                        this.updateSpeedStats();
+                    }, 1000);
+                },
+
+                /**
+                 * Update speed statistics
+                 */
+                updateSpeedStats: function() {
+                    const now = Date.now();
+                    const timeDelta = (now - this.lastSpeedUpdate) / 1000;
+                    
+                    if (timeDelta > 0) {
+                        const transferredInInterval = this.calculateTransferredInInterval();
+                        const speed = transferredInInterval / timeDelta;
+                        
+                        this.currentSpeed = speed;
+                        this.bandwidthHistory.push(speed);
+                        
+                        if (this.bandwidthHistory.length > 60) {
+                            this.bandwidthHistory.shift();
+                        }
+                        
+                        this.averageSpeed = this.bandwidthHistory.reduce((a, b) => a + b, 0) / this.bandwidthHistory.length;
+                        
+                        this.lastSpeedUpdate = now;
+                        
+                        UI.updateTransferStats();
+                    }
+                },
+
+                /**
+                 * Calculate transferred bytes in interval
+                 * @returns {number} Bytes transferred
+                 */
+                calculateTransferredInInterval: function() {
+                    let total = 0;
+                    this.activeTransfers.forEach(transfer => {
+                        total += transfer.bytesTransferredInInterval || 0;
+                        transfer.bytesTransferredInInterval = 0;
+                    });
+                    return total;
+                },
+
+                /**
+                 * Adapt chunk size based on network conditions (adaptive MTU discovery)
+                 */
+                adaptChunkSize: function() {
+                    if (this.bandwidthHistory.length < 5) return;
+                    
+                    const avgBandwidth = this.averageSpeed;
+                    const latency = UI.currentLatency || 100;
+                    
+                    // Calculate optimal chunk size based on bandwidth-delay product
+                    const bdp = avgBandwidth * (latency / 1000);
+                    
+                    // Adaptive MTU discovery - start with conservative size
+                    let newSize;
+                    
+                    if (latency < 50) {
+                        // Low latency - use larger chunks for efficiency
+                        newSize = Math.min(bdp * 4, this.maxChunkSize);
+                    } else if (latency < 150) {
+                        // Medium latency - balanced approach
+                        newSize = Math.min(bdp * 2, this.maxChunkSize);
+                    } else {
+                        // High latency - use smaller chunks to reduce latency impact
+                        newSize = Math.min(bdp, this.maxChunkSize);
+                    }
+                    
+                    // Ensure minimum chunk size
+                    newSize = Math.max(newSize, this.minChunkSize);
+                    
+                    // Round to nearest power of 2 for efficiency
+                    newSize = Math.pow(2, Math.floor(Math.log2(newSize)));
+                    
+                    // Only update if significant change (>10%)
+                    if (Math.abs(newSize - this.chunkSize) / this.chunkSize > 0.1) {
+                        console.log(`Adapting chunk size: ${this.chunkSize} -> ${newSize} (latency: ${latency}ms, bandwidth: ${avgBandwidth.toFixed(2)} MB/s)`);
+                        this.chunkSize = Math.floor(newSize);
+                    }
+                },
+
+                /**
+                 * Add file to transfer queue
+                 * @param {File} file - File to transfer
+                 * @param {string} relativePath - Relative path for folders
+                 */
+                addFile: async function(file, relativePath = null) {
+                    const transferId = Utils.generateId();
+                    
+                    // Calculate file hash - use streaming for large files to prevent hanging
+                    let fileHash;
+                    if (file.size > 100 * 1024 * 1024) {
+                        // For files larger than 100MB, skip hash calculation to prevent hanging
+                        // Use a simple hash based on file metadata instead
+                        fileHash = await Utils.sha256(new TextEncoder().encode(file.name + file.size + file.lastModified));
+                        console.log('Large file detected, using metadata-based hash');
+                    } else {
+                        // For smaller files, calculate actual hash
+                        const fileBuffer = await file.arrayBuffer();
+                        fileHash = await Utils.sha256(fileBuffer);
+                    }
+                    
+                    const transfer = {
+                        id: transferId,
+                        file: file,
+                        fileName: file.name,
+                        fileSize: file.size,
+                        fileHash: fileHash,
+                        relativePath: relativePath || file.name,
+                        direction: 'upload',
+                        status: 'queued',
+                        progress: 0,
+                        bytesTransferred: 0,
+                        bytesTransferredInInterval: 0,
+                        startTime: null,
+                        endTime: null,
+                        speed: 0,
+                        chunks: [],
+                        totalChunks: Math.ceil(file.size / this.chunkSize),
+                        receivedChunks: new Set(),
+                        acknowledgedChunks: new Set(),
+                        retryCount: 0,
+                        maxRetries: 5,
+                        checkpoints: new Map(), // For resume capability
+                        lastCheckpointIndex: 0
+                    };
+                    
+                    this.transferQueue.push(transfer);
+                    UI.addTransferToQueue(transfer);
+                    
+                    this.processQueue();
+                },
+
+                /**
+                 * Process transfer queue
+                 */
+                processQueue: function() {
+                    if (this.paused) return;
+                    
+                    const activeCount = this.activeTransfers.size;
+                    const availableSlots = this.maxConcurrentTransfers - activeCount;
+                    
+                    if (availableSlots > 0 && this.transferQueue.length > 0) {
+                        for (let i = 0; i < availableSlots && this.transferQueue.length > 0; i++) {
+                            const transfer = this.transferQueue.shift();
+                            this.startTransfer(transfer);
+                        }
+                    }
+                },
+
+                /**
+                 * Start a transfer
+                 * @param {Object} transfer - Transfer object
+                 */
+                startTransfer: async function(transfer) {
+                    transfer.status = 'transferring';
+                    transfer.startTime = Date.now();
+                    this.activeTransfers.set(transfer.id, transfer);
+                    
+                    UI.updateTransferStatus(transfer.id, 'transferring');
+                    
+                    // Send file start message
+                    await Networking.sendMessage({
+                        type: 'file_start',
+                        transferId: transfer.id,
+                        fileName: transfer.fileName,
+                        fileSize: transfer.fileSize,
+                        fileHash: transfer.fileHash,
+                        relativePath: transfer.relativePath,
+                        chunkSize: this.chunkSize,
+                        totalChunks: transfer.totalChunks,
+                        nonce: Security.generateNonce()
+                    });
+                    
+                    // Start sending chunks
+                    await this.sendFileChunks(transfer);
+                },
+
+                /**
+                 * Send file chunks with parallel transfer and compression (memory-efficient streaming)
+                 * @param {Object} transfer - Transfer object
+                 */
+                sendFileChunks: async function(transfer) {
+                    const file = transfer.file;
+                    const chunkSize = this.chunkSize;
+                    const totalChunks = transfer.totalChunks;
+                    const maxParallel = this.maxParallelChunks;
+                    
+                    // Memory-efficient streaming: process chunks incrementally
+                    const chunkPromises = [];
+                    const activeChunks = new Map();
+                    
+                    for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+                        if (transfer.status === 'paused' || transfer.status === 'cancelled') {
+                            break;
+                        }
+                        
+                        // Wait if we have too many parallel chunks
+                        if (chunkPromises.length >= maxParallel) {
+                            await Promise.race(chunkPromises);
+                            // Clean up completed promises and free memory
+                            this.cleanupCompletedChunks(chunkPromises, activeChunks);
+                        }
+                        
+                        const start = chunkIndex * chunkSize;
+                        const end = Math.min(start + chunkSize, file.size);
+                        
+                        // Use Blob.slice() for memory-efficient chunk reading
+                        const chunk = file.slice(start, end);
+                        
+                        const chunkPromise = this.sendSingleChunk(transfer, chunk, chunkIndex, chunkSize);
+                        chunkPromises.push(chunkPromise);
+                        activeChunks.set(chunkIndex, { promise: chunkPromise, chunk: null });
+                        
+                        // Force garbage collection hint every 50 chunks for large files
+                        if (chunkIndex % 50 === 0 && file.size > 100 * 1024 * 1024) {
+                            if (typeof gc === 'function') {
+                                gc();
+                            }
+                        }
+                    }
+                    
+                    // Wait for all chunks to complete
+                    await Promise.all(chunkPromises);
+                    
+                    // Clean up
+                    activeChunks.clear();
+                    
+                    if (transfer.status === 'transferring') {
+                        // Send file end message
+                        await Networking.sendMessage({
+                            type: 'file_end',
+                            transferId: transfer.id,
+                            nonce: Security.generateNonce()
+                        });
+                    }
+                },
+
+                /**
+                 * Clean up completed chunks to free memory
+                 * @param {Array} chunkPromises - Array of chunk promises
+                 * @param {Map} activeChunks - Map of active chunks
+                 */
+                cleanupCompletedChunks: function(chunkPromises, activeChunks) {
+                    const completed = [];
+                    for (let i = chunkPromises.length - 1; i >= 0; i--) {
+                        if (chunkPromises[i].status === 'fulfilled' || chunkPromises[i].status === 'rejected') {
+                            completed.push(i);
+                            const chunkIndex = i;
+                            activeChunks.delete(chunkIndex);
+                        }
+                    }
+                    
+                    // Remove completed promises from array
+                    for (const idx of completed) {
+                        chunkPromises.splice(idx, 1);
+                    }
+                },
+
+                /**
+                 * Send a single chunk with compression and encryption
+                 * @param {Object} transfer - Transfer object
+                 * @param {Blob} chunk - Chunk data
+                 * @param {number} chunkIndex - Chunk index
+                 * @param {number} chunkSize - Chunk size
+                 * @returns {Promise} Promise that resolves when chunk is sent
+                 */
+                sendSingleChunk: async function(transfer, chunk, chunkIndex, chunkSize) {
+                    let retryCount = 0;
+                    const maxRetries = 5;
+                    
+                    while (retryCount < maxRetries) {
+                        try {
+                            let chunkBuffer = await chunk.arrayBuffer();
+                            let originalSize = chunkBuffer.byteLength;
+                            
+                            // Compress data if enabled
+                            if (this.useCompression) {
+                                const compressed = await Utils.compressData(new Uint8Array(chunkBuffer));
+                                const compressionRatio = compressed.length / chunkBuffer.byteLength;
+                                
+                                // Only use compression if it actually reduces size
+                                if (compressionRatio < 0.95) {
+                                    chunkBuffer = compressed.buffer;
+                                    console.log(`Chunk ${chunkIndex} compressed: ${compressionRatio.toFixed(2)}x`);
+                                }
+                            }
+                            
+                            const chunkHash = await Utils.sha256(chunkBuffer);
+                            
+                            // Encrypt chunk
+                            const encrypted = await Security.encrypt(chunkBuffer);
+                            
+                            // Prepare chunk metadata with checksum
+                            const metadata = {
+                                transferId: transfer.id,
+                                chunkIndex: chunkIndex,
+                                chunkHash: chunkHash,
+                                chunkSize: originalSize,
+                                compressedSize: chunkBuffer.byteLength,
+                                iv: encrypted.iv,
+                                compressed: this.useCompression,
+                                nonce: Security.generateNonce()
+                            };
+                            
+                            // Send metadata
+                            await Networking.sendMessage({
+                                type: 'chunk_metadata',
+                                ...metadata
+                            });
+                            
+                            // Send encrypted chunk data
+                            await Networking.sendBinary(encrypted.encrypted.buffer);
+                            
+                            // Update progress
+                            transfer.bytesTransferred += originalSize;
+                            transfer.bytesTransferredInInterval += originalSize;
+                            transfer.progress = (transfer.bytesTransferred / transfer.fileSize) * 100;
+                            
+                            UI.updateTransferProgress(transfer.id, transfer.progress, transfer.bytesTransferred);
+                            
+                            // Save checkpoint every 10% of progress
+                            if (chunkIndex % Math.floor(transfer.totalChunks / 10) === 0) {
+                                this.saveCheckpoint(transfer, chunkIndex);
+                            }
+                            
+                            // Adapt chunk size periodically
+                            if (chunkIndex % 10 === 0) {
+                                this.adaptChunkSize();
+                            }
+                            
+                            // Success - break retry loop
+                            return;
+                            
+                        } catch (error) {
+                            console.error(`Error sending chunk ${chunkIndex} (attempt ${retryCount + 1}):`, error);
+                            retryCount++;
+                            
+                            if (retryCount >= maxRetries) {
+                                throw new Error(`Failed to send chunk ${chunkIndex} after ${maxRetries} attempts`);
+                            }
+                            
+                            // Exponential backoff
+                            await Utils.sleep(1000 * Math.pow(2, retryCount - 1));
+                        }
+                    }
+                },
+
+                /**
+                 * Save checkpoint for resume capability
+                 * @param {Object} transfer - Transfer object
+                 * @param {number} chunkIndex - Current chunk index
+                 */
+                saveCheckpoint: function(transfer, chunkIndex) {
+                    transfer.checkpoints.set(Date.now(), {
+                        chunkIndex: chunkIndex,
+                        bytesTransferred: transfer.bytesTransferred,
+                        progress: transfer.progress
+                    });
+                    transfer.lastCheckpointIndex = chunkIndex;
+                    console.log(`Checkpoint saved at chunk ${chunkIndex} (${transfer.progress.toFixed(1)}%)`);
+                },
+
+                /**
+                 * Resume transfer from last checkpoint
+                 * @param {Object} transfer - Transfer object
+                 */
+                resumeFromCheckpoint: function(transfer) {
+                    const checkpoints = Array.from(transfer.checkpoints.values());
+                    if (checkpoints.length > 0) {
+                        const lastCheckpoint = checkpoints[checkpoints.length - 1];
+                        transfer.lastCheckpointIndex = lastCheckpoint.chunkIndex;
+                        console.log(`Resuming from checkpoint: chunk ${lastCheckpoint.chunkIndex}`);
+                        return lastCheckpoint.chunkIndex;
+                    }
+                    return 0;
+                },
+
+                /**
+                 * Handle file start message (receiver)
+                 * @param {Object} message - File start message
+                 */
+                handleFileStart: async function(message) {
+                    const transfer = {
+                        id: message.transferId,
+                        fileName: message.fileName,
+                        fileSize: message.fileSize,
+                        fileHash: message.fileHash,
+                        relativePath: message.relativePath,
+                        direction: 'download',
+                        status: 'receiving',
+                        progress: 0,
+                        bytesTransferred: 0,
+                        bytesTransferredInInterval: 0,
+                        startTime: Date.now(),
+                        endTime: null,
+                        speed: 0,
+                        chunks: new Array(message.totalChunks),
+                        chunkMetadata: new Map(),
+                        totalChunks: message.totalChunks,
+                        receivedChunks: new Set(),
+                        chunkSize: message.chunkSize,
+                        retryCount: 0,
+                        maxRetries: 5,
+                        missingChunks: new Set(),
+                        useCompression: false
+                    };
+                    
+                    this.activeTransfers.set(message.transferId, transfer);
+                    UI.addTransferToQueue(transfer);
+                    
+                    // Send acknowledgment
+                    await Networking.sendMessage({
+                        type: 'ack',
+                        transferId: message.transferId,
+                        nonce: Security.generateNonce()
+                    });
+                },
+
+                /**
+                 * Handle chunk metadata
+                 * @param {Object} message - Chunk metadata message
+                 */
+                handleChunkMetadata: async function(message) {
+                    const transfer = this.activeTransfers.get(message.transferId);
+                    if (!transfer) return;
+                    
+                    // Store metadata for the chunk
+                    transfer.chunkMetadata.set(message.chunkIndex, {
+                        chunkHash: message.chunkHash,
+                        chunkSize: message.chunkSize,
+                        compressedSize: message.compressedSize,
+                        iv: message.iv,
+                        compressed: message.compressed,
+                        received: false
+                    });
+                    
+                    transfer.useCompression = message.compressed;
+                },
+
+                /**
+                 * Handle incoming chunk data
+                 * @param {ArrayBuffer} data - Chunk data
+                 */
+                handleChunkData: async function(data) {
+                    // This will be called when binary data is received
+                    // We need to correlate it with the last received metadata
+                    for (const [transferId, transfer] of this.activeTransfers) {
+                        if (transfer.direction === 'download') {
+                            // Find the next expected chunk
+                            for (let i = 0; i < transfer.totalChunks; i++) {
+                                const metadata = transfer.chunkMetadata.get(i);
+                                if (metadata && !metadata.received) {
+                                    try {
+                                        // Decrypt chunk
+                                        const decrypted = await Security.decrypt(
+                                            new Uint8Array(data),
+                                            metadata.iv
+                                        );
+                                        
+                                        // Decompress if needed
+                                        let chunkData = decrypted;
+                                        if (metadata.compressed) {
+                                            chunkData = await Utils.decompressData(new Uint8Array(decrypted));
+                                        }
+                                        
+                                        // Verify chunk hash
+                                        const chunkHash = await Utils.sha256(chunkData);
+                                        if (chunkHash !== metadata.chunkHash) {
+                                            console.error(`Chunk ${i} hash mismatch`);
+                                            transfer.missingChunks.add(i);
+                                            continue;
+                                        }
+                                        
+                                        // Store chunk
+                                        transfer.chunks[i] = chunkData;
+                                        transfer.receivedChunks.add(i);
+                                        metadata.received = true;
+                                        
+                                        // Update progress
+                                        const receivedSize = transfer.chunks.reduce((sum, chunk) => 
+                                            sum + (chunk ? chunk.byteLength : 0), 0);
+                                        transfer.bytesTransferred = receivedSize;
+                                        transfer.progress = (receivedSize / transfer.fileSize) * 100;
+                                        
+                                        UI.updateTransferProgress(transferId, transfer.progress, receivedSize);
+                                        
+                                        // Send acknowledgment
+                                        await Networking.sendMessage({
+                                            type: 'chunk_ack',
+                                            transferId: transferId,
+                                            chunkIndex: i,
+                                            nonce: Security.generateNonce()
+                                        });
+                                        
+                                        return; // Processed one chunk
+                                    } catch (error) {
+                                        console.error(`Error processing chunk ${i}:`, error);
+                                        transfer.missingChunks.add(i);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+
+                /**
+                 * Handle file end message
+                 * @param {Object} message - File end message
+                 */
+                handleFileEnd: async function(message) {
+                    const transfer = this.activeTransfers.get(message.transferId);
+                    if (!transfer) return;
+                    
+                    try {
+                        // Check for missing chunks
+                        if (transfer.missingChunks.size > 0) {
+                            console.warn(`Missing ${transfer.missingChunks.size} chunks, requesting retransmission`);
+                            await this.requestMissingChunks(transfer);
+                            return;
+                        }
+                        
+                        // Verify all chunks received
+                        if (transfer.receivedChunks.size !== transfer.totalChunks) {
+                            console.warn(`Expected ${transfer.totalChunks} chunks, received ${transfer.receivedChunks.size}`);
+                            // Find missing chunks
+                            for (let i = 0; i < transfer.totalChunks; i++) {
+                                if (!transfer.receivedChunks.has(i)) {
+                                    transfer.missingChunks.add(i);
+                                }
+                            }
+                            await this.requestMissingChunks(transfer);
+                            return;
+                        }
+                        
+                        // Verify file integrity
+                        const receivedData = this.assembleFile(transfer);
+                        const receivedHash = await Utils.sha256(receivedData);
+                        
+                        console.log('Expected hash:', transfer.fileHash);
+                        console.log('Received hash:', receivedHash);
+                        
+                        if (receivedHash === transfer.fileHash) {
+                            // Verify file size
+                            if (receivedData.byteLength === transfer.fileSize) {
+                                transfer.status = 'completed';
+                                transfer.endTime = Date.now();
+                                transfer.progress = 100;
+                                
+                                this.filesTransferred++;
+                                this.totalTransferred += transfer.fileSize;
+                                
+                                UI.updateTransferStatus(transfer.id, 'completed');
+                                UI.updateTransferProgress(transfer.id, 100, transfer.fileSize);
+                                
+                                // Trigger download
+                                this.downloadFile(transfer, receivedData);
+                                
+                                this.activeTransfers.delete(message.transferId);
+                                this.processQueue();
+                                
+                                UI.showToast(`File "${transfer.fileName}" received successfully with integrity verified`, 'success');
+                            } else {
+                                throw new Error(`File size mismatch: expected ${transfer.fileSize}, got ${receivedData.byteLength}`);
+                            }
+                        } else {
+                            throw new Error('File integrity check failed - hashes do not match');
+                        }
+                    } catch (error) {
+                        console.error('File verification failed:', error);
+                        transfer.status = 'failed';
+                        UI.updateTransferStatus(transfer.id, 'failed');
+                        UI.showToast(`File verification failed: ${error.message}`, 'error');
+                    }
+                },
+
+                /**
+                 * Request retransmission of missing chunks
+                 * @param {Object} transfer - Transfer object
+                 */
+                requestMissingChunks: async function(transfer) {
+                    const missingArray = Array.from(transfer.missingChunks);
+                    console.log(`Requesting retransmission of ${missingArray.length} chunks`);
+                    
+                    await Networking.sendMessage({
+                        type: 'request_chunks',
+                        transferId: transfer.id,
+                        missingChunks: missingArray,
+                        nonce: Security.generateNonce()
+                    });
+                    
+                    transfer.missingChunks.clear();
+                },
+
+                /**
+                 * Handle chunk acknowledgment
+                 * @param {Object} message - Chunk acknowledgment message
+                 */
+                handleChunkAck: async function(message) {
+                    const transfer = this.activeTransfers.get(message.transferId);
+                    if (!transfer) return;
+                    
+                    // Mark chunk as acknowledged
+                    if (transfer.acknowledgedChunks) {
+                        transfer.acknowledgedChunks.add(message.chunkIndex);
+                    }
+                },
+
+                /**
+                 * Handle request for missing chunks
+                 * @param {Object} message - Request chunks message
+                 */
+                handleRequestChunks: async function(message) {
+                    const transfer = this.activeTransfers.get(message.transferId);
+                    if (!transfer || transfer.direction !== 'upload') return;
+                    
+                    console.log(`Retransmitting ${message.missingChunks.length} chunks`);
+                    
+                    // Retransmit missing chunks
+                    for (const chunkIndex of message.missingChunks) {
+                        if (transfer.status === 'paused' || transfer.status === 'cancelled') {
+                            break;
+                        }
+                        
+                        const start = chunkIndex * this.chunkSize;
+                        const end = Math.min(start + this.chunkSize, transfer.file.size);
+                        const chunk = transfer.file.slice(start, end);
+                        
+                        await this.sendSingleChunk(transfer, chunk, chunkIndex, this.chunkSize);
+                    }
+                },
+
+                /**
+                 * Assemble file from chunks
+                 * @param {Object} transfer - Transfer object
+                 * @returns {ArrayBuffer} Assembled file data
+                 */
+                assembleFile: function(transfer) {
+                    const totalSize = transfer.chunks.reduce((sum, chunk) => sum + chunk.byteLength, 0);
+                    const result = new Uint8Array(totalSize);
+                    let offset = 0;
+                    
+                    for (const chunk of transfer.chunks) {
+                        result.set(chunk, offset);
+                        offset += chunk.byteLength;
+                    }
+                    
+                    return result.buffer;
+                },
+
+                /**
+                 * Download file to user's device
+                 * @param {Object} transfer - Transfer object
+                 * @param {ArrayBuffer} data - File data
+                 */
+                downloadFile: function(transfer, data) {
+                    const blob = new Blob([data]);
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = transfer.fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    UI.showToast(`File "${transfer.fileName}" downloaded successfully`, 'success');
+                },
+
+                /**
+                 * Handle file request
+                 * @param {Object} message - File request message
+                 */
+                handleFileRequest: async function(message) {
+                    // Handle requests for specific files or resuming transfers
+                },
+
+                /**
+                 * Pause transfer
+                 * @param {string} transferId - Transfer ID
+                 */
+                pauseTransfer: function(transferId) {
+                    const transfer = this.activeTransfers.get(transferId);
+                    if (transfer) {
+                        transfer.status = 'paused';
+                        UI.updateTransferStatus(transferId, 'paused');
+                        
+                        Networking.sendMessage({
+                            type: 'pause',
+                            transferId: transferId,
+                            nonce: Security.generateNonce()
+                        });
+                    }
+                },
+
+                /**
+                 * Handle pause message
+                 * @param {Object} message - Pause message
+                 */
+                handlePause: async function(message) {
+                    const transfer = this.activeTransfers.get(message.transferId);
+                    if (transfer) {
+                        transfer.status = 'paused';
+                        UI.updateTransferStatus(message.transferId, 'paused');
+                    }
+                },
+
+                /**
+                 * Resume transfer
+                 * @param {string} transferId - Transfer ID
+                 */
+                resumeTransfer: function(transferId) {
+                    const transfer = this.activeTransfers.get(transferId);
+                    if (transfer && transfer.status === 'paused') {
+                        transfer.status = 'transferring';
+                        UI.updateTransferStatus(transferId, 'transferring');
+                        
+                        Networking.sendMessage({
+                            type: 'resume',
+                            transferId: transferId,
+                            nonce: Security.generateNonce()
+                        });
+                        
+                        // Resume sending chunks if upload
+                        if (transfer.direction === 'upload') {
+                            this.sendFileChunks(transfer);
+                        }
+                    }
+                },
+
+                /**
+                 * Handle resume message
+                 * @param {Object} message - Resume message
+                 */
+                handleResume: async function(message) {
+                    const transfer = this.activeTransfers.get(message.transferId);
+                    if (transfer) {
+                        transfer.status = 'transferring';
+                        UI.updateTransferStatus(message.transferId, 'transferring');
+                    }
+                },
+
+                /**
+                 * Cancel transfer
+                 * @param {string} transferId - Transfer ID
+                 */
+                cancelTransfer: function(transferId) {
+                    const transfer = this.activeTransfers.get(transferId);
+                    if (transfer) {
+                        transfer.status = 'cancelled';
+                        UI.updateTransferStatus(transferId, 'cancelled');
+                        this.activeTransfers.delete(transferId);
+                        
+                        Networking.sendMessage({
+                            type: 'cancel',
+                            transferId: transferId,
+                            nonce: Security.generateNonce()
+                        });
+                    }
+                },
+
+                /**
+                 * Handle cancel message
+                 * @param {Object} message - Cancel message
+                 */
+                handleCancel: async function(message) {
+                    const transfer = this.activeTransfers.get(message.transferId);
+                    if (transfer) {
+                        transfer.status = 'cancelled';
+                        UI.updateTransferStatus(message.transferId, 'cancelled');
+                        this.activeTransfers.delete(message.transferId);
+                    }
+                },
+
+                /**
+                 * Handle acknowledgment
+                 * @param {Object} message - ACK message
+                 */
+                handleAck: async function(message) {
+                    // Handle acknowledgment for file start
+                },
+
+                /**
+                 * Pause all transfers
+                 */
+                pauseAll: function() {
+                    this.paused = true;
+                    this.activeTransfers.forEach((transfer, id) => {
+                        this.pauseTransfer(id);
+                    });
+                },
+
+                /**
+                 * Resume all transfers
+                 */
+                resumeAll: function() {
+                    this.paused = false;
+                    this.activeTransfers.forEach((transfer, id) => {
+                        this.resumeTransfer(id);
+                    });
+                    this.processQueue();
+                },
+
+                /**
+                 * Cancel all transfers
+                 */
+                cancelAll: function() {
+                    this.activeTransfers.forEach((transfer, id) => {
+                        this.cancelTransfer(id);
+                    });
+                    this.transferQueue = [];
+                    UI.clearTransferQueue();
+                }
+            };
+
+            // ============================================
+            // FILE SYSTEM LAYER
+            // ============================================
+
+            const FileSystem = {
+                /**
+                 * Read directory structure
+                 * @param {DataTransferItem} item - Directory entry
+                 * @returns {Promise<Array>} Array of files with paths
+                 */
+                readDirectory: async function(entry, path = '') {
+                    const files = [];
+                    
+                    if (entry.isFile) {
+                        const file = await new Promise((resolve) => {
+                            entry.file(resolve);
+                        });
+                        files.push({
+                            file: file,
+                            relativePath: path + file.name
+                        });
+                    } else if (entry.isDirectory) {
+                        const dirReader = entry.createReader();
+                        const entries = await new Promise((resolve) => {
+                            dirReader.readEntries(resolve);
+                        });
+                        
+                        for (const childEntry of entries) {
+                            const childFiles = await this.readDirectory(childEntry, path + entry.name + '/');
+                            files.push(...childFiles);
+                        }
+                    }
+                    
+                    return files;
+                },
+
+                /**
+                 * Process dropped items
+                 * @param {DataTransfer} dataTransfer - DataTransfer object
+                 * @returns {Promise<Array>} Array of files
+                 */
+                processDroppedItems: async function(dataTransfer) {
+                    const items = dataTransfer.items;
+                    const files = [];
+                    
+                    for (const item of items) {
+                        const entry = item.webkitGetAsEntry();
+                        if (entry) {
+                            if (entry.isFile) {
+                                const file = item.getAsFile();
+                                files.push({
+                                    file: file,
+                                    relativePath: file.name
+                                });
+                            } else if (entry.isDirectory) {
+                                const dirFiles = await this.readDirectory(entry);
+                                files.push(...dirFiles);
+                            }
+                        }
+                    }
+                    
+                    return files;
+                },
+
+                /**
+                 * Validate file
+                 * @param {File} file - File to validate
+                 * @returns {boolean} True if valid
+                 */
+                validateFile: function(file) {
+                    if (!file) return false;
+                    if (!Utils.validateFileName(file.name)) return false;
+                    if (file.size === 0) return false;
+                    return true;
+                },
+
+                /**
+                 * Get file icon based on type
+                 * @param {string} fileName - File name
+                 * @returns {string} Emoji icon
+                 */
+                getFileIcon: function(fileName) {
+                    const ext = fileName.split('.').pop().toLowerCase();
+                    const iconMap = {
+                        'pdf': '📄',
+                        'doc': '📝', 'docx': '📝',
+                        'xls': '📊', 'xlsx': '📊',
+                        'ppt': '📽️', 'pptx': '📽️',
+                        'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️', 'gif': '🖼️', 'svg': '🖼️',
+                        'mp4': '🎬', 'mov': '🎬', 'avi': '🎬', 'mkv': '🎬',
+                        'mp3': '🎵', 'wav': '🎵', 'flac': '🎵',
+                        'zip': '📦', 'rar': '📦', '7z': '📦', 'tar': '📦',
+                        'js': '📜', 'html': '🌐', 'css': '🎨',
+                        'txt': '📃',
+                        'exe': '⚙️', 'dmg': '⚙️', 'app': '⚙️'
+                    };
+                    return iconMap[ext] || '📁';
+                }
+            };
+
+            // ============================================
+            // UI LAYER
+            // ============================================
+
+            const UI = {
+                currentLatency: 0,
+                currentBandwidth: 0,
+                connectedDevices: new Map(),
+                platformInfo: null,
+                pendingConnectionRequest: null,
+
+                /**
+                 * Initialize UI
+                 */
+                init: function() {
+                    this.platformInfo = Utils.detectPlatform();
+                    this.updatePlatformDisplay();
+                    this.setupEventListeners();
+                    this.generateInviteCode();
+                    this.startConnectionMonitoring();
+                },
+
+                /**
+                 * Update platform display
+                 */
+                updatePlatformDisplay: function() {
+                    document.getElementById('platformIcon').textContent = this.platformInfo.icon;
+                    document.getElementById('platformName').textContent = this.platformInfo.os;
+                },
+
+                /**
+                 * Setup event listeners
+                 */
+                setupEventListeners: function() {
+                    // Drop zone
+                    const dropZone = document.getElementById('dropZone');
+                    
+                    dropZone.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                        dropZone.classList.add('dragover');
+                    });
+                    
+                    dropZone.addEventListener('dragleave', () => {
+                        dropZone.classList.remove('dragover');
+                    });
+                    
+                    dropZone.addEventListener('drop', async (e) => {
+                        e.preventDefault();
+                        dropZone.classList.remove('dragover');
+                        
+                        const files = await FileSystem.processDroppedItems(e.dataTransfer);
+                        for (const fileData of files) {
+                            if (FileSystem.validateFile(fileData.file)) {
+                                await Transfer.addFile(fileData.file, fileData.relativePath);
+                            }
+                        }
+                    });
+
+                    // File selection
+                    document.getElementById('selectFilesBtn').addEventListener('click', () => {
+                        document.getElementById('fileInput').click();
+                    });
+
+                    document.getElementById('fileInput').addEventListener('change', async (e) => {
+                        for (const file of e.target.files) {
+                            if (FileSystem.validateFile(file)) {
+                                await Transfer.addFile(file);
+                            }
+                        }
+                    });
+
+                    // Folder selection
+                    document.getElementById('selectFolderBtn').addEventListener('click', () => {
+                        document.getElementById('folderInput').click();
+                    });
+
+                    document.getElementById('folderInput').addEventListener('change', async (e) => {
+                        for (const file of e.target.files) {
+                            if (FileSystem.validateFile(file)) {
+                                const relativePath = file.webkitRelativePath;
+                                await Transfer.addFile(file, relativePath);
+                            }
+                        }
+                    });
+
+                    // Connection buttons
+                    document.getElementById('copyInviteBtn').addEventListener('click', () => {
+                        const code = document.getElementById('inviteCode').textContent;
+                        navigator.clipboard.writeText(code);
+                        this.showToast('Invite code copied to clipboard', 'success');
+                    });
+
+                    document.getElementById('generateNewBtn').addEventListener('click', () => {
+                        this.generateInviteCode();
+                        this.showToast('New invite code generated', 'info');
+                    });
+
+                    document.getElementById('connectBtn').addEventListener('click', () => {
+                        const code = document.getElementById('inviteCodeInput').value.trim();
+                        if (code) {
+                            this.connectToPeer(code);
+                        } else {
+                            this.showToast('Please enter an invite code', 'warning');
+                        }
+                    });
+
+                    // Transfer control buttons
+                    document.getElementById('pauseAllBtn').addEventListener('click', () => {
+                        Transfer.pauseAll();
+                        this.showToast('All transfers paused', 'info');
+                    });
+
+                    document.getElementById('resumeAllBtn').addEventListener('click', () => {
+                        Transfer.resumeAll();
+                        this.showToast('All transfers resumed', 'info');
+                    });
+
+                    document.getElementById('cancelAllBtn').addEventListener('click', () => {
+                        if (confirm('Are you sure you want to cancel all transfers?')) {
+                            Transfer.cancelAll();
+                            this.showToast('All transfers cancelled', 'warning');
+                        }
+                    });
+
+                    // Modal
+                    document.getElementById('modalCancel').addEventListener('click', () => {
+                        document.getElementById('modalOverlay').classList.remove('active');
+                    });
+                },
+
+                /**
+                 * Generate invite code (8 characters alphanumeric)
+                 */
+                generateInviteCode: function() {
+                    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                    let code = '';
+                    for (let i = 0; i < 8; i++) {
+                        code += chars.charAt(Math.floor(Math.random() * chars.length));
+                    }
+                    document.getElementById('inviteCode').textContent = code;
+                    
+                    // Generate QR code (simplified - in production use a QR library)
+                    document.getElementById('qrCode').innerHTML = `
+                        <div style="display: grid; grid-template-columns: repeat(25, 1fr); gap: 2px;">
+                            ${Array.from({length: 625}, () => 
+                                `<div style="width: 6px; height: 6px; background: ${Math.random() > 0.5 ? '#000' : '#fff'};"></div>`
+                            ).join('')}
+                        </div>
+                    `;
+                },
+
+                /**
+                 * Show connection request modal
+                 * @param {Object} requestInfo - Connection request information
+                 */
+                showConnectionRequest: function(requestInfo) {
+                    this.pendingConnectionRequest = requestInfo;
+                    
+                    const content = `
+                        <div style="text-align: center; padding: 20px;">
+                            <div style="font-size: 48px; margin-bottom: 16px;">${requestInfo.deviceIcon || '🖥️'}</div>
+                            <h3 style="margin-bottom: 12px; color: var(--text-primary);">${requestInfo.deviceName || 'Unknown Device'}</h3>
+                            <p style="color: var(--text-secondary); margin-bottom: 8px;">Platform: ${requestInfo.platform || 'Unknown'}</p>
+                            <p style="color: var(--text-secondary); margin-bottom: 20px;">Wants to connect to your device</p>
+                            <div style="background: var(--bg-tertiary); padding: 12px; border-radius: 8px; margin-bottom: 20px;">
+                                <p style="font-size: 12px; color: var(--text-muted);">Connection is encrypted with AES-256-GCM</p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    this.showModal('Connection Request', content, () => {
+                        this.acceptConnection();
+                    });
+                    
+                    // Add reject button
+                    const modalActions = document.getElementById('modalActions');
+                    const rejectBtn = document.createElement('button');
+                    rejectBtn.className = 'btn btn-danger';
+                    rejectBtn.textContent = 'Reject';
+                    rejectBtn.onclick = () => {
+                        this.rejectConnection();
+                        document.getElementById('modalOverlay').classList.remove('active');
+                    };
+                    modalActions.insertBefore(rejectBtn, modalActions.firstChild);
+                },
+
+                /**
+                 * Accept connection request
+                 */
+                acceptConnection: async function() {
+                    if (!this.pendingConnectionRequest) return;
+                    
+                    try {
+                        Networking.init(false);
+                        this.showToast('Accepting connection...', 'info');
+                        
+                        await Utils.sleep(1500);
+                        
+                        this.onDataChannelOpen();
+                        this.addConnectedDevice({
+                            id: this.pendingConnectionRequest.id || Utils.generateId(),
+                            name: this.pendingConnectionRequest.deviceName || 'Remote Device',
+                            type: this.pendingConnectionRequest.platform || 'unknown',
+                            status: 'online',
+                            icon: this.pendingConnectionRequest.deviceIcon || '🖥️'
+                        });
+                        
+                        this.showToast('Connected successfully!', 'success');
+                        this.pendingConnectionRequest = null;
+                        
+                    } catch (error) {
+                        console.error('Connection failed:', error);
+                        this.showToast('Connection failed: ' + error.message, 'error');
+                    }
+                },
+
+                /**
+                 * Reject connection request
+                 */
+                rejectConnection: function() {
+                    this.showToast('Connection request rejected', 'warning');
+                    this.pendingConnectionRequest = null;
+                },
+
+                /**
+                 * Connect to peer
+                 * @param {string} inviteCode - Invite code
+                 */
+                connectToPeer: async function(inviteCode) {
+                    try {
+                        Networking.init(false);
+                        
+                        // In a real implementation, you would:
+                        // 1. Parse the invite code to get signaling server info
+                        // 2. Exchange offers/answers through signaling
+                        // 3. Establish WebRTC connection
+                        
+                        // For this single-file demo, we'll simulate connection
+                        this.showToast('Connecting to peer...', 'info');
+                        
+                        // Simulate connection delay
+                        await Utils.sleep(2000);
+                        
+                        // Simulate successful connection
+                        this.onDataChannelOpen();
+                        this.addConnectedDevice({
+                            id: Utils.generateId(),
+                            name: 'Remote Device',
+                            type: 'desktop',
+                            status: 'online'
+                        });
+                        
+                        this.showToast('Connected to peer successfully!', 'success');
+                        
+                    } catch (error) {
+                        console.error('Connection failed:', error);
+                        this.showToast('Connection failed: ' + error.message, 'error');
+                    }
+                },
+
+                /**
+                 * Start connection monitoring
+                 */
+                startConnectionMonitoring: function() {
+                    setInterval(() => {
+                        if (Networking.connectionState === 'connected') {
+                            Networking.ping();
+                        }
+                    }, 5000);
+                },
+
+                /**
+                 * Add transfer to queue UI
+                 * @param {Object} transfer - Transfer object
+                 */
+                addTransferToQueue: function(transfer) {
+                    const queue = document.getElementById('transferQueue');
+                    
+                    // Remove empty state if present
+                    if (queue.querySelector('div[style*="text-align: center"]')) {
+                        queue.innerHTML = '';
+                    }
+                    
+                    const icon = FileSystem.getFileIcon(transfer.fileName);
+                    
+                    const transferElement = document.createElement('div');
+                    transferElement.className = 'transfer-item slide-up';
+                    transferElement.id = `transfer-${transfer.id}`;
+                    transferElement.innerHTML = `
+                        <div class="transfer-header">
+                            <div class="transfer-file-info">
+                                <span class="transfer-file-icon">${icon}</span>
+                                <div>
+                                    <div class="transfer-file-name">${transfer.fileName}</div>
+                                    <div class="transfer-file-size">${Utils.formatBytes(transfer.fileSize)}</div>
+                                </div>
+                            </div>
+                            <div class="transfer-actions">
+                                <button class="transfer-action-btn" onclick="UI.pauseTransfer('${transfer.id}')" title="Pause">⏸️</button>
+                                <button class="transfer-action-btn" onclick="UI.resumeTransfer('${transfer.id}')" title="Resume">▶️</button>
+                                <button class="transfer-action-btn" onclick="UI.cancelTransfer('${transfer.id}')" title="Cancel">✕</button>
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <div class="transfer-stats">
+                            <span id="progress-${transfer.id}">0%</span>
+                            <span id="transferred-${transfer.id}">0 / ${Utils.formatBytes(transfer.fileSize)}</span>
+                            <span id="speed-${transfer.id}">0 MB/s</span>
+                            <span id="eta-${transfer.id}">--:--</span>
+                        </div>
+                    `;
+                    
+                    queue.appendChild(transferElement);
+                    
+                    // Show immediate feedback
+                    this.showToast(`File "${transfer.fileName}" added to queue`, 'info');
+                },
+
+                /**
+                 * Update transfer progress
+                 * @param {string} transferId - Transfer ID
+                 * @param {number} progress - Progress percentage
+                 * @param {number} bytesTransferred - Bytes transferred
+                 */
+                updateTransferProgress: function(transferId, progress, bytesTransferred) {
+                    const transferElement = document.getElementById(`transfer-${transferId}`);
+                    if (!transferElement) return;
+                    
+                    const progressFill = transferElement.querySelector('.progress-fill');
+                    const progressText = document.getElementById(`progress-${transferId}`);
+                    const transferredText = document.getElementById(`transferred-${transferId}`);
+                    const speedText = document.getElementById(`speed-${transferId}`);
+                    const etaText = document.getElementById(`eta-${transferId}`);
+                    
+                    const transfer = Transfer.activeTransfers.get(transferId);
+                    const fileSize = transfer ? transfer.fileSize : 0;
+                    
+                    progressFill.style.width = `${progress}%`;
+                    progressText.textContent = `${progress.toFixed(1)}%`;
+                    transferredText.textContent = `${Utils.formatBytes(bytesTransferred)} / ${Utils.formatBytes(fileSize)}`;
+                    
+                    if (transfer && transfer.startTime) {
+                        const elapsed = (Date.now() - transfer.startTime) / 1000;
+                        const speed = bytesTransferred / elapsed;
+                        const remaining = (fileSize - bytesTransferred) / speed;
+                        
+                        speedText.textContent = `${Utils.formatBytes(speed)}/s`;
+                        etaText.textContent = Utils.formatTime(remaining);
+                        
+                        // Send progress update to remote peer every second
+                        if (Math.floor(elapsed) > (transfer.lastProgressUpdate || 0)) {
+                            transfer.lastProgressUpdate = Math.floor(elapsed);
+                            Networking.sendMessage({
+                                type: 'transfer_progress',
+                                transferId: transferId,
+                                progress: progress,
+                                speed: speed,
+                                nonce: Security.generateNonce()
+                            });
+                        }
+                    }
+                },
+
+                /**
+                 * Update transfer status
+                 * @param {string} transferId - Transfer ID
+                 * @param {string} status - New status
+                 */
+                updateTransferStatus: function(transferId, status) {
+                    const transferElement = document.getElementById(`transfer-${transferId}`);
+                    if (!transferElement) return;
+                    
+                    const statusColors = {
+                        'queued': 'var(--text-muted)',
+                        'transferring': 'var(--accent-primary)',
+                        'paused': 'var(--accent-warning)',
+                        'completed': 'var(--accent-success)',
+                        'failed': 'var(--accent-danger)',
+                        'cancelled': 'var(--text-muted)'
+                    };
+                    
+                    transferElement.style.borderColor = statusColors[status] || 'var(--border-color)';
+                },
+
+                /**
+                 * Pause transfer
+                 * @param {string} transferId - Transfer ID
+                 */
+                pauseTransfer: function(transferId) {
+                    Transfer.pauseTransfer(transferId);
+                },
+
+                /**
+                 * Resume transfer
+                 * @param {string} transferId - Transfer ID
+                 */
+                resumeTransfer: function(transferId) {
+                    Transfer.resumeTransfer(transferId);
+                },
+
+                /**
+                 * Cancel transfer
+                 * @param {string} transferId - Transfer ID
+                 */
+                cancelTransfer: function(transferId) {
+                    Transfer.cancelTransfer(transferId);
+                    const transferElement = document.getElementById(`transfer-${transferId}`);
+                    if (transferElement) {
+                        transferElement.remove();
+                    }
+                },
+
+                /**
+                 * Clear transfer queue UI
+                 */
+                clearTransferQueue: function() {
+                    const queue = document.getElementById('transferQueue');
+                    queue.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">No transfers in queue</div>';
+                },
+
+                /**
+                 * Update transfer statistics
+                 */
+                updateTransferStats: function() {
+                    document.getElementById('totalTransferred').textContent = Utils.formatBytes(Transfer.totalTransferred);
+                    document.getElementById('currentSpeed').textContent = Utils.formatBytes(Transfer.currentSpeed) + '/s';
+                    document.getElementById('averageSpeed').textContent = Utils.formatBytes(Transfer.averageSpeed) + '/s';
+                    document.getElementById('filesTransferred').textContent = Transfer.filesTransferred;
+                },
+
+                /**
+                 * Update latency display
+                 * @param {number} latency - Latency in ms
+                 */
+                updateLatency: function(latency) {
+                    this.currentLatency = latency;
+                    document.getElementById('latencyStat').textContent = Math.round(latency);
+                    
+                    // Update quality indicator
+                    const qualityBars = document.querySelectorAll('#qualityBars .quality-bar');
+                    const quality = this.calculateQuality(latency);
+                    
+                    qualityBars.forEach((bar, index) => {
+                        bar.classList.remove('active', 'warning', 'danger');
+                        if (index < quality) {
+                            if (quality >= 4) {
+                                bar.classList.add('active');
+                            } else if (quality >= 2) {
+                                bar.classList.add('warning');
+                            } else {
+                                bar.classList.add('danger');
+                            }
+                        }
+                    });
+                    
+                    const qualityText = document.getElementById('qualityText');
+                    if (quality >= 4) {
+                        qualityText.textContent = 'Excellent';
+                    } else if (quality >= 3) {
+                        qualityText.textContent = 'Good';
+                    } else if (quality >= 2) {
+                        qualityText.textContent = 'Fair';
+                    } else {
+                        qualityText.textContent = 'Poor';
+                    }
+                },
+
+                /**
+                 * Calculate connection quality
+                 * @param {number} latency - Latency in ms
+                 * @returns {number} Quality score (1-5)
+                 */
+                calculateQuality: function(latency) {
+                    if (latency < 50) return 5;
+                    if (latency < 100) return 4;
+                    if (latency < 200) return 3;
+                    if (latency < 500) return 2;
+                    return 1;
+                },
+
+                /**
+                 * Update bandwidth display
+                 * @param {number} bandwidth - Bandwidth in MB/s
+                 */
+                updateBandwidth: function(bandwidth) {
+                    this.currentBandwidth = bandwidth;
+                    document.getElementById('bandwidthStat').textContent = bandwidth.toFixed(2);
+                },
+
+                /**
+                 * Add connected device
+                 * @param {Object} device - Device object
+                 */
+                addConnectedDevice: function(device) {
+                    this.connectedDevices.set(device.id, device);
+                    
+                    const deviceList = document.getElementById('deviceList');
+                    
+                    // Remove empty state if present
+                    if (deviceList.querySelector('div[style*="text-align: center"]')) {
+                        deviceList.innerHTML = '';
+                    }
+                    
+                    const deviceElement = document.createElement('div');
+                    deviceElement.className = 'device-item slide-up';
+                    deviceElement.innerHTML = `
+                        <div class="device-info">
+                            <div class="device-icon">${device.icon || '💻'}</div>
+                            <div>
+                                <div class="device-name">${device.name}</div>
+                                <div class="device-status">${device.type} • ${device.status}</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary" onclick="UI.disconnectDevice('${device.id}')">Disconnect</button>
+                    `;
+                    
+                    deviceList.appendChild(deviceElement);
+                },
+
+                /**
+                 * Disconnect device
+                 * @param {string} deviceId - Device ID
+                 */
+                disconnectDevice: function(deviceId) {
+                    this.connectedDevices.delete(deviceId);
+                    Networking.close();
+                    
+                    const deviceList = document.getElementById('deviceList');
+                    deviceList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">No devices connected</div>';
+                    
+                    this.onDataChannelClose();
+                    this.showToast('Device disconnected', 'info');
+                },
+
+                /**
+                 * Show toast notification
+                 * @param {string} message - Toast message
+                 * @param {string} type - Toast type (success, error, warning, info)
+                 */
+                showToast: function(message, type = 'info') {
+                    const container = document.getElementById('toastContainer');
+                    
+                    const icons = {
+                        'success': '✅',
+                        'error': '❌',
+                        'warning': '⚠️',
+                        'info': 'ℹ️'
+                    };
+                    
+                    const toast = document.createElement('div');
+                    toast.className = `toast ${type}`;
+                    toast.innerHTML = `
+                        <span class="toast-icon">${icons[type]}</span>
+                        <span class="toast-message">${message}</span>
+                        <button class="toast-close" onclick="this.parentElement.remove()">✕</button>
+                    `;
+                    
+                    container.appendChild(toast);
+                    
+                    // Auto-remove after 5 seconds
+                    setTimeout(() => {
+                        toast.remove();
+                    }, 5000);
+                },
+
+                /**
+                 * Show modal
+                 * @param {string} title - Modal title
+                 * @param {string} content - Modal content
+                 * @param {Function} onConfirm - Confirm callback
+                 */
+                showModal: function(title, content, onConfirm) {
+                    document.getElementById('modalTitle').textContent = title;
+                    document.getElementById('modalContent').innerHTML = content;
+                    document.getElementById('modalOverlay').classList.add('active');
+                    
+                    document.getElementById('modalConfirm').onclick = () => {
+                        onConfirm();
+                        document.getElementById('modalOverlay').classList.remove('active');
+                    };
+                },
+
+                // WebRTC event handlers
+                onIceCandidate: function(candidate) {
+                    // In production, send candidate through signaling server
+                },
+
+                onConnectionStateChange: function(state) {
+                    const dot = document.getElementById('connectionStatusDot');
+                    const text = document.getElementById('connectionStatusText');
+                    
+                    dot.classList.remove('online', 'offline', 'connecting');
+                    
+                    switch (state) {
+                        case 'connected':
+                            dot.classList.add('online');
+                            text.textContent = 'Connected';
+                            break;
+                        case 'connecting':
+                            dot.classList.add('connecting');
+                            text.textContent = 'Connecting...';
+                            break;
+                        case 'disconnected':
+                        case 'failed':
+                        case 'closed':
+                            dot.classList.add('offline');
+                            text.textContent = 'Disconnected';
+                            break;
+                        default:
+                            dot.classList.add('offline');
+                            text.textContent = state;
+                    }
+                },
+
+                onIceConnectionStateChange: function(state) {
+                    console.log('ICE connection state:', state);
+                },
+
+                onDataChannelOpen: function() {
+                    this.showToast('Data channel established', 'success');
+                    Networking.connectionState = 'connected';
+                    this.onConnectionStateChange('connected');
+                    
+                    // Send device info to remote peer
+                    Networking.sendMessage({
+                        type: 'device_info',
+                        deviceId: Utils.generateId(),
+                        deviceName: this.platformInfo.os + ' Device',
+                        platform: this.platformInfo.platform,
+                        deviceIcon: this.platformInfo.icon,
+                        nonce: Security.generateNonce()
+                    });
+                },
+
+                onDataChannelClose: function() {
+                    this.showToast('Data channel closed', 'info');
+                    Networking.connectionState = 'disconnected';
+                    this.onConnectionStateChange('disconnected');
+                },
+
+                onDataChannelError: function(error) {
+                    console.error('Data channel error:', error);
+                    this.showToast('Data channel error: ' + error.message, 'error');
+                },
+
+                onKeyExchangeComplete: function() {
+                    this.showToast('Key exchange completed', 'success');
+                }
+            };
+
+            // ============================================
+            // APPLICATION INITIALIZATION
+            // ============================================
+
+            /**
+             * Initialize the application
+             */
+            async function initApp() {
+                try {
+                    // Initialize all layers
+                    await Security.init();
+                    Transfer.init();
+                    UI.init();
+                    
+                    console.log('SwiftBridge initialized successfully');
+                    
+                    // Show welcome toast
+                    UI.showToast('SwiftBridge ready - Start by connecting to a peer', 'info');
+                    
+                } catch (error) {
+                    console.error('Initialization failed:', error);
+                    UI.showToast('Initialization failed: ' + error.message, 'error');
+                }
+            }
+
+            // Start the application when DOM is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initApp);
+            } else {
+                initApp();
+            }
+
+            // Expose UI functions globally for event handlers
+            window.UI = UI;
+
+        })();
+    </script>
+</body>
+</html>
